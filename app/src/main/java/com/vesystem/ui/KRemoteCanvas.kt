@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.os.Handler
 import android.util.AttributeSet
 import android.util.Log
 import androidx.appcompat.widget.AppCompatImageView
@@ -13,6 +14,7 @@ import com.vesystem.opaque.bitmap.KCanvasDrawable
 import com.vesystem.opaque.interfaces.KSpiceConnect
 import com.vesystem.opaque.interfaces.KViewable
 import com.vesystem.opaque.model.MessageEvent
+import com.vesystem.opaque.model.MessageEvent.SPICE_CONNECT_TIMEOUT
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -32,14 +34,23 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
     var drawable: WeakReference<Drawable>? = null//渲染bitmap
     var scope: WeakReference<Job>? = null
     var canvasBitmap: Bitmap? = null
+    var myHandler: Handler? = null
 
     init {
         setBackgroundColor(Color.BLACK)
+        myHandler = Handler(Handler.Callback {
+            when (it.what) {
+                SPICE_CONNECT_TIMEOUT -> EventBus.getDefault()
+                    .post(MessageEvent(SPICE_CONNECT_TIMEOUT))
+            }
+            false
+        })
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         Log.i(TAG, "Spice初始化: ")
+
         spiceCommunicator = WeakReference(
             SpiceCommunicator(
                 context.applicationContext
@@ -73,12 +84,14 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             }
 
             override fun onConnectSucceed() {
+                myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
                 EventBus.getDefault().post(MessageEvent(MessageEvent.SPICE_CONNECT_SUCCESS))
             }
         })
 
 
         scope = WeakReference(GlobalScope.launch {
+            myHandler?.sendEmptyMessageDelayed(SPICE_CONNECT_TIMEOUT, 5000)
             enabledConnectSpice()
             enabledConnectSpice()
         })

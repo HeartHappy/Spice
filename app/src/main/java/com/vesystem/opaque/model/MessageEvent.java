@@ -11,6 +11,7 @@ public class MessageEvent {
 
     public static final int SPICE_CONNECT_SUCCESS = 4;
     public static final int SPICE_CONNECT_FAILURE = 5;
+    public static final int SPICE_CONNECT_TIMEOUT = 6;//连接超时
     public static final int SPICE_GET_W_H = 10;//获取到了bitmap宽高
     public static final int SPICE_BITMAP_UPDATE = 11;//bitmap更新
     public static final int SPICE_MOUSE_UPDATE = 12;//鼠标更新

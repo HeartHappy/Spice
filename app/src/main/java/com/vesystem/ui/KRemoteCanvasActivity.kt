@@ -37,7 +37,6 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this)
         }
-
         initView()
     }
 
@@ -117,6 +116,10 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     fun eventBus(messageEvent: MessageEvent) {
         Log.i("MessageEvent", "eventBus: ${messageEvent.requestCode}")
         when (messageEvent.requestCode) {
+            MessageEvent.SPICE_CONNECT_SUCCESS -> Log.i("MessageEvent", "eventBus: 连接成功")
+            MessageEvent.SPICE_CONNECT_TIMEOUT -> {
+                Log.i("MessageEvent", "eventBus: 连接超时")
+            }
             //失败原因：1、连接失败   2、连接超时  3、远程断开
             MessageEvent.SPICE_CONNECT_FAILURE -> {
                 val sc = canvas.spiceCommunicator?.get()
@@ -134,12 +137,13 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                         }
                         else -> {
                             //2、连接时，返回得连接失败
+                            canvas.myHandler?.removeMessages(MessageEvent.SPICE_CONNECT_TIMEOUT)
                             Log.i("MessageEvent", "eventBus: 连接失败")
                         }
                     }
                 }
             }
-            MessageEvent.SPICE_CONNECT_SUCCESS -> Log.i("MessageEvent", "eventBus: 连接成功")
+
             else -> Log.i("MessageEvent", "eventBus: 其他")
         }
     }
@@ -158,17 +162,25 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                 materialSheetFab.hideSheet()
                 showKeyboard()
             } else if (it.id == R.id.session_disconnect) {
-                val sc = canvas.spiceCommunicator?.get()
-                sc?.isConnectSucceed?.let {
-                    if (sc.isConnectSucceed) {
-                        sc.isConnectSucceed = false
-                        sc.isClickDisconnect = true
-                        sc.disconnect()
-                    }
-                }
-                canvas.scope?.get()?.cancel()
+                close()
                 finish()
             }
         }
+    }
+
+
+    /**
+     * 断开连接，并取消协程
+     */
+    private fun close() {
+        val sc = canvas.spiceCommunicator?.get()
+        sc?.isConnectSucceed?.let {
+            if (sc.isConnectSucceed) {
+                sc.isConnectSucceed = false
+                sc.isClickDisconnect = true
+                sc.disconnect()
+            }
+        }
+        canvas.scope?.get()?.cancel()
     }
 }

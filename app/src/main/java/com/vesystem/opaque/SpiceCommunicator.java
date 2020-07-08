@@ -22,7 +22,11 @@ package com.vesystem.opaque;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import com.vesystem.opaque.interfaces.KSpiceConnect;
 import com.vesystem.opaque.interfaces.KSpiceConnectable;
@@ -284,6 +288,12 @@ public class SpiceCommunicator implements KSpiceConnectable {
         // TODO Auto-generated method stub
         return false;
     }
+    Handler handler=new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(@NonNull Message msg) {
+            return false;
+        }
+    });
 
     @Override
     public void setCertificateAccepted(boolean certificateAccepted) {
