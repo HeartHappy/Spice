@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/popBottomSoftKeyRoot"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/dp_200"
+    android:layout_gravity="bottom"
+    android:background="@color/col_blank"
+    android:orientation="vertical">
+    <!--第一行-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnF1"
+            style="@style/style_btn_all_soft_key"
+            android:text="F1" />
+
+        <Button
+            android:id="@+id/btnF2"
+            style="@style/style_btn_all_soft_key"
+            android:text="F2" />
+
+        <Button
+            android:id="@+id/btnF3"
+            style="@style/style_btn_all_soft_key"
+            android:text="F3" />
+
+        <Button
+            android:id="@+id/btnF4"
+            style="@style/style_btn_all_soft_key"
+            android:text="F4" />
+
+        <Button
+            android:id="@+id/btnF5"
+            style="@style/style_btn_all_soft_key"
+            android:text="F5" />
+
+        <Button
+            android:id="@+id/btnF6"
+            style="@style/style_btn_all_soft_key"
+            android:text="F6" />
+    </LinearLayout>
+
+
+    <!--第二行-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <Button
+            android:id="@+id/btnF7"
+            style="@style/style_btn_all_soft_key"
+            android:text="F7" />
+
+        <Button
+            android:id="@+id/btnF8"
+            style="@style/style_btn_all_soft_key"
+            android:text="F8" />
+
+        <Button
+            android:id="@+id/btnF9"
+            style="@style/style_btn_all_soft_key"
+            android:text="F9" />
+
+        <Button
+            android:id="@+id/btnF10"
+            style="@style/style_btn_all_soft_key"
+            android:text="F10" />
+
+        <Button
+            android:id="@+id/btnF11"
+            style="@style/style_btn_all_soft_key"
+            android:text="F11" />
+
+        <Button
+            android:id="@+id/btnF12"
+            style="@style/style_btn_all_soft_key"
+            android:text="F12" />
+    </LinearLayout>
+
+
+    <!--第三行-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/btnRightMouse"
+            style="@style/style_btn_all_soft_key"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="@dimen/dp_20"
+                android:layout_height="@dimen/dp_20"
+                android:src="@mipmap/mouse_r" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnDelText"
+            style="@style/style_btn_all_soft_key"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="@dimen/dp_20"
+                android:layout_height="@dimen/dp_20"
+                android:src="@mipmap/backspace" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnIns"
+            style="@style/style_btn_all_soft_key"
+            android:text="Ins" />
+
+        <Button
+            android:id="@+id/btnPageUp"
+            style="@style/style_btn_all_soft_key"
+            android:text="PgUp" />
+
+        <LinearLayout
+            android:id="@+id/btnKeyUp"
+            style="@style/style_btn_all_soft_key"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="@dimen/dp_18"
+                android:layout_height="@dimen/dp_18"
+                android:rotation="90"
+                android:src="@mipmap/back" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnPageDown"
+            style="@style/style_btn_all_soft_key"
+            android:text="PgDn" />
+    </LinearLayout>
+
+
+    <!--第四行-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/btnScreenShot"
+            style="@style/style_btn_all_soft_key"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="@dimen/dp_20"
+                android:layout_height="@dimen/dp_20"
+                android:rotation="90"
+                android:src="@mipmap/jiep" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnEnter"
+            style="@style/style_btn_all_soft_key"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="@dimen/dp_20"
+                android:layout_height="@dimen/dp_20"
+                android:rotation="90"
+                android:src="@mipmap/enter" />
+        </LinearLayout>
+
+
+        <Button
+            android:id="@+id/btnDel"
+            style="@style/style_btn_all_soft_key"
+            android:text="Del" />
+
+        <LinearLayout
+            android:id="@+id/btnKeyLeft"
+            style="@style/style_btn_all_soft_key"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="@dimen/dp_18"
+                android:layout_height="@dimen/dp_18"
+                android:src="@mipmap/back" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnKeyDown"
+            style="@style/style_btn_all_soft_key"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="@dimen/dp_18"
+                android:layout_height="@dimen/dp_18"
+                android:rotation="-90"
+                android:src="@mipmap/back" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnKeyRight"
+            style="@style/style_btn_all_soft_key"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="@dimen/dp_18"
+                android:layout_height="@dimen/dp_18"
+                android:rotation="180"
+                android:src="@mipmap/back" />
+        </LinearLayout>
+
+    </LinearLayout>
+</LinearLayout>

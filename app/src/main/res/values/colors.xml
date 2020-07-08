@@ -1,0 +1,12 @@
+<resources>
+
+    <color name="black_overlay">#66000000</color>
+    <color name="color_8EA5CB">#8EA5CB</color>
+    <color name="col_blank">#000000</color>
+    <color name="col_white">#FFFFFF</color>
+    <color name="col_remote_dis" >#24AFEE</color>
+    <color name="col_remote_dis_50" >#8024AFEE</color>
+    <color name="color_transpare">#00000000</color>
+    <color name="col_gray">#5F5E5E</color>
+
+</resources>

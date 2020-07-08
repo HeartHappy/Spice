@@ -1,0 +1,5 @@
+/*include ':remoteClientLib'
+include ':pubkeyGenerator'
+include ':spice'*/
+include ':app'
+rootProject.name = "Spice"
