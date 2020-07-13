@@ -156,7 +156,7 @@ public class SpiceCommunicator implements KSpiceConnectable {
      * Launches a new thread which performs a plain SPICE connection.
      */
     public void connectSpice(String ip, String port, String tport, String password, String cf, String ca, String cs, boolean sound) {
-        Log.e(TAG, "connectSpice: " + ip + ", " + port + ", " + tport + ", " + cf + ", " + cs);
+        Log.e(TAG, "connectSpice:ip: " + ip + ", port:" + port + ", password:"+password+",tport:" + tport + ", " + cf + ", " + cs);
         SpiceClientConnect(ip, port, tport, password, cf, ca, cs, sound);
         EventBus.getDefault().post(new MessageEvent(SPICE_CONNECT_FAILURE));
     }
@@ -178,7 +178,7 @@ public class SpiceCommunicator implements KSpiceConnectable {
     }
 
     public void sendSpiceKeyEvent(boolean keyDown, int virtualKeyCode) {
-        //android.util.Log.d(TAG, "sendSpiceKeyEvent: down: " + keyDown + " code: " + virtualKeyCode);
+       Log.i(TAG, "sendSpiceKeyEvent: down: " + keyDown + " code: " + virtualKeyCode);
         SpiceKeyEvent(keyDown, virtualKeyCode);
     }
 
@@ -288,12 +288,6 @@ public class SpiceCommunicator implements KSpiceConnectable {
         // TODO Auto-generated method stub
         return false;
     }
-    Handler handler=new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(@NonNull Message msg) {
-            return false;
-        }
-    });
 
     @Override
     public void setCertificateAccepted(boolean certificateAccepted) {

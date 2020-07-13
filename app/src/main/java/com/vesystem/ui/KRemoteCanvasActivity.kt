@@ -1,18 +1,21 @@
 package com.vesystem.ui
 
-import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Context
 import android.graphics.Rect
-import android.os.Build
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.util.Log
+import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import com.gordonwong.materialsheetfab.MaterialSheetFab
+import com.vesystem.opaque.key.KeyBoard
+import com.vesystem.opaque.key.KeyBoard.Companion.SCANCODE_ALTGR_MASK
+import com.vesystem.opaque.key.KeyBoard.Companion.SCANCODE_SHIFT_MASK
+import com.vesystem.opaque.key.KeyBoard.Companion.UNICODE_MASK
+import com.vesystem.opaque.key.KeyBoard.Companion.UNICODE_META_MASK
 import com.vesystem.opaque.model.MessageEvent
 import com.vesystem.spice.R
 import com.vesystem.ui.widget.Fab
@@ -29,6 +32,7 @@ import kotlin.properties.Delegates
  */
 class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     private var materialSheetFab by Delegates.notNull<MaterialSheetFab<Fab>>()
+    private var keyBoard: KeyBoard? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -38,7 +42,10 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             EventBus.getDefault().register(this)
         }
         initView()
+
+        initSoftKeyBoard()
     }
+
 
     @Suppress("DEPRECATION")
     private fun initView() {
@@ -96,7 +103,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
      *
      * @return
      */
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+    /*@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     private fun getSoftButtonsBarHeight(): Int {
         val metrics = DisplayMetrics()
         //这个方法获取可能不是真实屏幕的高度
@@ -110,7 +117,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         } else {
             0
         }
-    }
+    }*/
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun eventBus(messageEvent: MessageEvent) {
@@ -138,7 +145,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                         else -> {
                             //2、连接时，返回得连接失败
                             canvas.myHandler?.removeMessages(MessageEvent.SPICE_CONNECT_TIMEOUT)
-                            Log.i("MessageEvent", "eventBus: 连接失败")
+                            Log.i("MessageEvent", "eventBus: 连接失败,无法连接或认证ca主题")
                         }
                     }
                 }
@@ -146,14 +153,6 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
 
             else -> Log.i("MessageEvent", "eventBus: 其他")
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this)
-        }
-        System.gc()
     }
 
     override fun onClick(v: View?) {
@@ -166,6 +165,71 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                 finish()
             }
         }
+    }
+
+    private fun initSoftKeyBoard() {
+        keyBoard = KeyBoard(resources)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+
+        val unicodeChar =
+            event.getUnicodeChar(event.metaState and UNICODE_META_MASK.inv() and KeyEvent.META_ALT_MASK.inv())
+        Log.i(TAG, "dispatchKeyEvent unicodeChar: $unicodeChar,keycode:${event.keyCode}")
+        val code: Int
+        code = if (unicodeChar > 0) {
+            unicodeChar or UNICODE_MASK
+        } else {
+            event.keyCode
+        }
+        val codeList = keyBoard?.keyCode?.get(code)
+        codeList?.forEach {
+            it?.let { code ->
+                var sendCode = code
+                val isDown = event.action == KeyEvent.ACTION_DOWN
+
+                //解决按下num lock按键后与上下左右冲突问题
+                if (event.keyCode == 143) {
+                    return true
+                }
+                //解决左侧Enter按键无效问题
+                if (event.keyCode == 23) {
+                    sendKey(28, isDown)
+                    return true
+                }
+                //处理shift+字母、符号、数字切换
+                if (code and SCANCODE_SHIFT_MASK != 0) {
+                    Log.i(TAG, "dispatchKeyEvent Found Shift mask. code:$code")
+                    sendCode = code and SCANCODE_SHIFT_MASK.inv()
+                    if (event.keyCode == 155 || event.keyCode == 157) {
+                        sendKey(42, isDown)
+                        sendKey(sendCode, isDown)
+                        Log.i(TAG, "dispatchKeyEvent: 为右侧*、+号键")
+                        return true
+                    }
+                }
+                if (code and SCANCODE_ALTGR_MASK != 0) {
+                    Log.i(TAG, "dispatchKeyEvent Found AltGr mask. code:$code")
+                    sendCode = code and SCANCODE_ALTGR_MASK.inv()
+                }
+                sendKey(sendCode, isDown)
+            }
+        }
+        return true
+    }
+
+    private fun sendKey(code: Int, down: Boolean) {
+        Log.i(TAG, "sendKey: $code,$down")
+        canvas.spiceCommunicator?.get()?.sendSpiceKeyEvent(down, code)
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this)
+        }
+        System.gc()
     }
 
 
@@ -182,5 +246,9 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             }
         }
         canvas.scope?.get()?.cancel()
+    }
+
+    companion object {
+        private const val TAG = "KRemoteCanvasActivity"
     }
 }

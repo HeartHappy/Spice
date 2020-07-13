@@ -108,8 +108,8 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             "192.168.30.61",
             5901.toString(),
             "-1",
-            "gjc6qxl51z",
-            "/data/user/0/com.vesystem.ngd/files/ca0.pem",
+            "zxlb67fhea",
+            "/data/user/0/com.vesystem.spice/files/ca0.pem",
             null,
             "",
             true
@@ -201,8 +201,8 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             left, top,
             right, bottom
         )
-
     }
+
 
     private val drawableRunnable = Runnable {
         setImageDrawable(drawable?.get())
