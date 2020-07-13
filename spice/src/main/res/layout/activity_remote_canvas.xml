@@ -1,0 +1,156 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="MergeRootFrame">
+
+
+    <com.vesystem.spice.ui.KRemoteCanvas
+        android:id="@+id/canvas"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
+
+    <!--特殊键盘-->
+    <LinearLayout
+        android:id="@+id/llSoftKey"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_38"
+        android:layout_gravity="bottom"
+        android:background="@color/col_blank"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/btnSuper"
+            style="@style/style_soft_key_tv">
+
+            <ImageView
+                android:layout_width="@dimen/dp_20"
+                android:layout_height="@dimen/dp_20"
+                android:src="@mipmap/windows"
+                tools:ignore="ContentDescription" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnShift"
+            style="@style/style_soft_key_tv"
+            android:text="@string/key_shift"
+            android:textAllCaps="false"
+            android:textColor="@color/col_white" />
+
+        <Button
+            android:id="@+id/btnCtrl"
+            style="@style/style_soft_key_tv"
+            android:text="@string/key_ctrl"
+            android:textAllCaps="false"
+            android:textColor="@color/col_white" />
+
+        <Button
+            android:id="@+id/btnAlt"
+            style="@style/style_soft_key_tv"
+            android:text="@string/key_alt"
+            android:textAllCaps="false"
+            android:textColor="@color/col_white" />
+
+        <Button
+            android:id="@+id/btnTab"
+            style="@style/style_soft_key_tv"
+            android:text="@string/key_tab"
+            android:textAllCaps="false"
+            android:textColor="@color/col_white" />
+
+        <Button
+            android:id="@+id/btnEsc"
+            style="@style/style_soft_key_tv"
+            android:text="@string/key_esc"
+            android:textAllCaps="false"
+            android:textColor="@color/col_white" />
+
+        <LinearLayout
+            android:id="@+id/btnShowMore"
+            style="@style/style_soft_key_tv"
+            android:visibility="visible">
+
+            <ImageView
+                android:layout_width="@dimen/dp_20"
+                android:layout_height="@dimen/dp_20"
+                android:src="@mipmap/jianp"
+                tools:ignore="ContentDescription" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!--菜单按钮-->
+    <com.vesystem.spice.ui.widget.Fab
+        android:id="@+id/floatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|bottom"
+        android:layout_margin="@dimen/dp_40"
+        android:backgroundTint="@color/col_remote_dis"
+        android:src="@mipmap/menu"
+        app:borderWidth="0dp"
+        app:elevation="8dp"
+        app:layout_behavior="com.vesystem.spice.ui.widget.FloatingBehavior"
+        app:rippleColor="@color/col_gray"
+        tools:ignore="RtlHardcoded"
+        tools:targetApi="lollipop" />
+
+    <com.gordonwong.materialsheetfab.DimOverlayFrameLayout
+        android:id="@+id/overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Circular reveal container for the sheet -->
+    <io.codetail.widget.RevealLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="end|bottom"
+        android:orientation="vertical">
+
+        <!-- Sheet that contains your items -->
+        <FrameLayout
+            android:id="@+id/fab_sheet"
+            android:layout_width="130dp"
+            android:layout_height="120dp"
+            android:background="@drawable/bg_menu_radius">
+
+            <!-- Sheet items -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                tools:ignore="UselessParent">
+
+                <!-- <TextView
+                     android:id="@+id/session_touch_pointer"
+                     style="@style/style_bvnc_float_btn_item"
+                     android:drawableStart="@mipmap/iconck"
+                     android:drawableLeft="@mipmap/iconck"
+                     android:text="@string/operator_mode" />-->
+
+                <TextView
+                    android:id="@+id/session_sys_keyboard"
+                    style="@style/style_bvnc_float_btn_item"
+                    android:drawableStart="@mipmap/iconjp"
+                    android:drawableLeft="@mipmap/iconjp"
+                    android:text="@string/sys_key" />
+
+                <TextView
+                    android:id="@+id/session_disconnect"
+                    style="@style/style_bvnc_float_btn_item"
+                    android:drawableStart="@mipmap/icondk"
+                    android:drawableLeft="@mipmap/icondk"
+                    android:text="@string/disconnect" />
+
+                <!--<TextView
+                    android:id="@+id/tvZoom"
+                    style="@style/style_bvnc_float_btn_item"
+                    android:text="@string/zoom" />-->
+            </LinearLayout>
+        </FrameLayout>
+    </io.codetail.widget.RevealLinearLayout>
+
+</FrameLayout>

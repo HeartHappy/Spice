@@ -1,5 +1,6 @@
+include ':spice'
 include ':remoteClientLib'
 include ':pubkeyGenerator'
-include ':spice'
+include ':spicelib'
 include ':app'
 rootProject.name = "Spice"
