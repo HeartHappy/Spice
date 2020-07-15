@@ -1,4 +1,4 @@
-package com.vesystem.spice.key
+package com.vesystem.spice.keyboard
 
 import android.content.res.Resources
 import android.view.KeyEvent

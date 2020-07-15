@@ -1,5 +1,6 @@
 package com.vesystem.spice.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -11,7 +12,14 @@ import android.util.Log
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatImageView
 import com.vesystem.opaque.SpiceCommunicator
+import com.vesystem.spice.interfaces.KSpiceConnect
+import com.vesystem.spice.interfaces.KViewable
+import com.vesystem.spice.model.KMessageEvent
 import com.vesystem.spice.model.KMessageEvent.Companion.SPICE_CONNECT_TIMEOUT
+import com.vesystem.spice.model.Spice
+import com.vesystem.spice.mouse.IMouseOperation
+import com.vesystem.spice.mouse.KTVMouse
+import com.vesystem.spice.mouse.KTVMouse.Companion.POINTER_DOWN_MASK
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -21,17 +29,25 @@ import java.lang.ref.WeakReference
 /**
  * Created Date 2020/7/6.
  * @author ChenRui
- * ClassDescription:
+ * ClassDescription:自定义图形渲染View
+ * 负责处理：
+ * 1、创建连接
+ * 2、连接后的画面实时绘制
+ * 3、TV端鼠标的交互操作
+ * 4、界面销毁断开连接、主动断开连接
  */
 class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageView(context, attrs),
-    com.vesystem.spice.interfaces.KViewable {
+    KViewable, IMouseOperation {
     private var shiftY: Int = 0
     private var shiftX: Int = 0
     var spiceCommunicator: WeakReference<SpiceCommunicator>? = null//远程连接
-    var drawable: WeakReference<Drawable>? = null//渲染bitmap
+    private var drawable: WeakReference<Drawable>? = null//渲染bitmap
     var scope: WeakReference<Job>? = null
-    var canvasBitmap: Bitmap? = null
+    private var canvasBitmap: Bitmap? = null
     var myHandler: Handler? = null
+    var ktvMouse: KTVMouse? = null
+    private var mouseX: Int = 0
+    private var mouseY: Int = 0
 
     init {
         setBackgroundColor(Color.BLACK)
@@ -39,17 +55,19 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             when (it.what) {
                 SPICE_CONNECT_TIMEOUT -> EventBus.getDefault()
                     .post(
-                        com.vesystem.spice.model.KMessageEvent(
+                        KMessageEvent(
                             SPICE_CONNECT_TIMEOUT
                         )
                     )
             }
             false
         })
+
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
+
         spiceCommunicator = WeakReference(
             SpiceCommunicator(
                 context.applicationContext
@@ -60,7 +78,7 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
          * 原生方法得接口回调
          */
         spiceCommunicator?.get()?.setSpiceConnect(object :
-            com.vesystem.spice.interfaces.KSpiceConnect {
+            KSpiceConnect {
             override fun onUpdateBitmapWH(width: Int, height: Int) {
 //                Log.i(TAG, "onUpdateBitmapWH: $width,$height")
                 computeShiftFromFullToView(width, height)
@@ -86,10 +104,13 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             override fun onConnectSucceed() {
                 myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
                 EventBus.getDefault().post(
-                    com.vesystem.spice.model.KMessageEvent(
-                        com.vesystem.spice.model.KMessageEvent.SPICE_CONNECT_SUCCESS
+                    KMessageEvent(
+                        KMessageEvent.SPICE_CONNECT_SUCCESS
                     )
                 )
+                myHandler?.post {
+                    ktvMouse = KTVMouse(context.applicationContext, this@KRemoteCanvas)
+                }
             }
         })
 
@@ -109,14 +130,14 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
         //IO 线程里拉取数据
         Log.i(TAG, "启动Spice连接线程: ")
         spiceCommunicator?.get()?.connectSpice(
-            "192.168.30.61",
-            5901.toString(),
-            "-1",
-            "zxlb67fhea",
-            "/data/user/0/com.vesystem.spice/files/ca0.pem",
-            null,
-            "",
-            true
+            Spice.ip,
+            Spice.port,
+            Spice.tport,
+            Spice.password,
+            Spice.cf,
+            Spice.ca,
+            Spice.cs,
+            Spice.sound
         )
     }
 
@@ -129,25 +150,11 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
         }
     }
 
-    override val desiredWidth: Int
-        get() = width
-    override val desiredHeight: Int
-        get() = height
-    override val bitmap: Bitmap?
-        get() = canvasBitmap
-
-    /*override fun onDraw(canvas: Canvas) {
-        canvasBitmap?.let {
-            canvas.drawBitmap(it, 0f, 0f, null)
-        }
-    }*/
-
 
     /**
      * 重绘界面得bitmap
      */
     override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
         canvasBitmap?.let {
 //            Log.i(TAG, "onDraw: 更新")
             canvas.drawBitmap(it, 0f, 0f, null)
@@ -168,20 +175,9 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
                 height
             )
         )
-//          drawable =   WeakReference(KUltraCompactBitmapData(spiceCommunicator?.get(), true, width, height))
         //TODO 初始化鼠标
         spiceCommunicator?.get()?.setBitmap(canvasBitmap)
         post(drawableRunnable)
-//        drawable?.get()?.syncScroll()
-    }
-
-
-    override fun setMousePointerPosition(x: Int, y: Int) {
-        Log.i(TAG, "setMousePointerPosition: X:$x,Y:$y")
-    }
-
-    override fun mouseMode(relative: Boolean) {
-        Log.i(TAG, "mouseMode: $relative")
     }
 
 
@@ -217,17 +213,149 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
         setImageDrawable(drawable?.get())
     }
 
+
+    /**
+     *
+     *
+     *  TV端的鼠标操作
+     *
+     *
+     */
+
+    override fun setMousePointerPosition(x: Int, y: Int) {
+        Log.i(TAG, "setMousePointerPosition: X:$x,Y:$y")
+    }
+
+    override fun mouseMode(relative: Boolean) {
+        Log.i(TAG, "mouseMode: $relative")
+    }
+
+
+    /**
+     * 鼠标的操作，单击、双击、滚动
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        Log.i(TAG, "onTouchEvent: ")
+        ktvMouse?.gestureDetector?.onTouchEvent(event)
+        return true
+    }
+
+
+    /**
+     * TV端鼠标移动坐标
+     */
     override fun onHoverEvent(event: MotionEvent): Boolean {
-        val x = event.x.toInt()
-        val y = event.y.toInt()
-        spiceCommunicator?.get()?.writePointerEvent(
-            x, y, 0,
-            0, true
-        )
-        reDraw(x, y, width, height)
-        Log.i(TAG, "onHoverEvent: X:${event.x},Y:${event.y}")
+        ktvMouse?.isDown?.let {
+            if(!it){
+                mouseX = event.x.toInt()
+                mouseY = event.y.toInt()
+                spiceCommunicator?.get()?.writePointerEvent(
+                    mouseX, mouseY, 0,
+                    0, false
+                )
+                reDraw(mouseX, mouseY, width, height)
+                Log.i(TAG, "KTVPointer: X:${event.x},Y:${event.y}")
+            }
+        }
         return super.onHoverEvent(event)
     }
+
+    override fun leftButtonDown(x: Int, y: Int, metaState: Int, mouseType: Int) {
+        handlerMouseDownEvent(x, y, metaState, mouseType)
+    }
+
+    override fun leftButtonUp(x: Int, y: Int, metaState: Int, mouseType: Int) {
+        handlerMouseUpEvent(x, y, metaState, mouseType)
+    }
+
+
+    override fun middleButtonDown(x: Int, y: Int, metaState: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun rightButtonDown(x: Int, y: Int, metaState: Int, mouseType: Int) {
+        handlerMouseDownEvent(x, y, metaState, mouseType)
+    }
+
+    override fun rightButtonUp(x: Int, y: Int, metaState: Int, mouseType: Int) {
+        handlerMouseUpEvent(x,y,metaState,mouseType)
+    }
+
+
+    override fun scrollUp(x: Int, y: Int, metaState: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun scrollDown(x: Int, y: Int, metaState: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun releaseButton(x: Int, y: Int, metaState: Int) {
+        TODO("Not yet implemented")
+    }
+
+
+    //鼠标右键的按下、松开操作
+    fun rightMouseButton(isDown: Boolean) {
+        if (isDown) {
+            ktvMouse?.downMouseRightButton(mouseX, mouseY)
+        } else {
+            ktvMouse?.upMouseRightButton(mouseX, mouseY)
+        }
+    }
+
+
+    /**
+     * 处理鼠标按下事件
+     */
+    private fun handlerMouseDownEvent(
+        x: Int,
+        y: Int,
+        metaState: Int,
+        mouseType: Int
+    ) {
+        spiceCommunicator?.get()
+            ?.writePointerEvent(
+                x,
+                y,
+                metaState,
+                mouseType and POINTER_DOWN_MASK.inv(),
+                false
+            )
+        spiceCommunicator?.get()
+            ?.writePointerEvent(
+                x,
+                y,
+                metaState,
+                mouseType or POINTER_DOWN_MASK,
+                false
+            )
+
+    }
+
+
+    /**
+     * 处理鼠标松开事件
+     */
+    private fun handlerMouseUpEvent(
+        x: Int,
+        y: Int,
+        metaState: Int,
+        mouseType: Int
+    ) {
+        spiceCommunicator?.get()
+            ?.writePointerEvent(
+                x,
+                y,
+                metaState,
+                mouseType and POINTER_DOWN_MASK.inv(),
+                false
+            )
+        spiceCommunicator?.get()
+            ?.writePointerEvent(x, y, metaState, 0, false)
+    }
+
 
     companion object {
         private const val TAG = "KRemoteCanvas"

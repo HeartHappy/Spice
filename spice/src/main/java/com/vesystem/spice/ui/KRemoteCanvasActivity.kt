@@ -12,11 +12,11 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import com.gordonwong.materialsheetfab.MaterialSheetFab
 import com.vesystem.spice.R
-import com.vesystem.spice.key.KeyBoard
-import com.vesystem.spice.key.KeyBoard.Companion.SCANCODE_ALTGR_MASK
-import com.vesystem.spice.key.KeyBoard.Companion.SCANCODE_SHIFT_MASK
-import com.vesystem.spice.key.KeyBoard.Companion.UNICODE_MASK
-import com.vesystem.spice.key.KeyBoard.Companion.UNICODE_META_MASK
+import com.vesystem.spice.keyboard.KeyBoard
+import com.vesystem.spice.keyboard.KeyBoard.Companion.SCANCODE_ALTGR_MASK
+import com.vesystem.spice.keyboard.KeyBoard.Companion.SCANCODE_SHIFT_MASK
+import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_MASK
+import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_META_MASK
 import com.vesystem.spice.ui.widget.Fab
 import kotlinx.android.synthetic.main.activity_remote_canvas.*
 import org.greenrobot.eventbus.EventBus
@@ -27,7 +27,11 @@ import kotlin.properties.Delegates
 /**
  * Created Date 2020/7/6.
  * @author ChenRui
- * ClassDescription:
+ * ClassDescription:远程界面
+ * 负责处理：
+ * 1、加载自定义View
+ * 2、处理其他view的事件
+ * 3、键盘的交互
  */
 class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     private var materialSheetFab by Delegates.notNull<MaterialSheetFab<Fab>>()
@@ -170,10 +174,27 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     }
 
     private fun initSoftKeyBoard() {
-        keyBoard = com.vesystem.spice.key.KeyBoard(resources)
+        keyBoard = KeyBoard(resources)
     }
 
+
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val isDown = event.action == KeyEvent.ACTION_DOWN
+        //解决右键弹出菜单问题
+        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+            canvas.rightMouseButton(isDown)
+            return true
+        }
+        //解决按下num lock按键后与上下左右冲突问题
+        if (event.keyCode == KeyEvent.KEYCODE_NUM_LOCK) {
+            return true
+        }
+        //解决左侧Enter按键无效问题
+        if (event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+            sendKey(28, isDown)
+            return true
+        }
 
         val unicodeChar =
             event.getUnicodeChar(event.metaState and UNICODE_META_MASK.inv() and KeyEvent.META_ALT_MASK.inv())
@@ -188,21 +209,11 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         codeList?.forEach {
             it?.let { code ->
                 var sendCode = code
-                val isDown = event.action == KeyEvent.ACTION_DOWN
-
-                //解决按下num lock按键后与上下左右冲突问题
-                if (event.keyCode == 143) {
-                    return true
-                }
-                //解决左侧Enter按键无效问题
-                if (event.keyCode == 23) {
-                    sendKey(28, isDown)
-                    return true
-                }
                 //处理shift+字母、符号、数字切换
                 if (code and SCANCODE_SHIFT_MASK != 0) {
                     Log.i(TAG, "dispatchKeyEvent Found Shift mask. code:$code")
                     sendCode = code and SCANCODE_SHIFT_MASK.inv()
+                    //解决右侧*、-、+输入不正确问题
                     if (event.keyCode == 155 || event.keyCode == 157) {
                         sendKey(42, isDown)
                         sendKey(sendCode, isDown)
