@@ -195,8 +195,6 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             TAG,
             "reDraw: L:$left,T:$top,R:$right,B:$bottom,S:$scale"
         )
-        // Make the box slightly larger to avoid artifacts due to truncation errors.
-        // Make the box slightly larger to avoid artifacts due to truncation errors.
         postInvalidate(
             left, top,
             right, bottom

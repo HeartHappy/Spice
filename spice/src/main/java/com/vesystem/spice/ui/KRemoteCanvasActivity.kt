@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
@@ -185,7 +186,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         val isDown = event.action == KeyEvent.ACTION_DOWN
 
         //解决右键弹出菜单问题
-        if (!event.isCtrlPressed && event.keyCode == KeyEvent.KEYCODE_BACK) {
+        if (event.keyCode == KeyEvent.KEYCODE_BACK && event.source == InputDevice.SOURCE_MOUSE) {
             canvas.rightMouseButton(isDown)
             return true
         }
@@ -203,7 +204,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
 
         val unicodeChar =
             event.getUnicodeChar(event.metaState and UNICODE_META_MASK.inv() and KeyEvent.META_ALT_MASK.inv())
-//        Log.i(TAG, "dispatchKeyEvent unicodeChar: $unicodeChar,keycode:${event.keyCode}")
+//        Log.i(TAG, "dispatchKeyEvent unicodeChar: $unicodeChar,keycode:${event.keyCode},${event.isSystem}")
         val code: Int
         code = if (unicodeChar > 0) {
             unicodeChar or UNICODE_MASK
@@ -230,15 +231,15 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                 //处理alt事件
                 val altPressed = event.isAltPressed
                 if (altPressed && event.repeatCount == 0 && isDown && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT)) {
-//                    Log.i(TAG, "dispatchKeyEvent: alt true")
-                    sendKey(sendCode, isDown, event)
+//                        Log.i(TAG, "dispatchKeyEvent:left or right alt true")
+                    sendKey(KeyBoard.KEY_WIN_ALT, isDown, event)
                     return true
-                } else if (altPressed && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT) && event.action == KeyEvent.ACTION_UP) {
+                } else if (altPressed && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT) && !isDown) {
 //                    Log.i(TAG, "dispatchKeyEvent: alt+tab组合按键时，alt按下未松开，却响应了松开事件")
                     return true
                 } else if (!altPressed && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT) && !isDown) {
-//                    Log.i(TAG, "dispatchKeyEvent: alt false")
-                    sendKey(sendCode, isDown, event)
+//                    Log.i(TAG, "dispatchKeyEvent:left or right alt false")
+                    sendKey(KeyBoard.KEY_WIN_ALT, isDown, event)
                     tabSign = false
                     return true
                 }
@@ -256,6 +257,11 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                         sendKey(sendCode, isDown, event)
                         true
                     }
+                }
+
+                if (event.keyCode == KeyEvent.KEYCODE_CTRL_RIGHT || event.keyCode == KeyEvent.KEYCODE_CTRL_LEFT) {
+                    sendKey(KeyBoard.KEY_WIN_CTRL, isDown, event)
+                    return true
                 }
                 sendKey(sendCode, isDown, event)
             }
