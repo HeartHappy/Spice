@@ -13,10 +13,12 @@ import android.widget.Toast
 import com.gordonwong.materialsheetfab.MaterialSheetFab
 import com.vesystem.spice.R
 import com.vesystem.spice.keyboard.KeyBoard
-import com.vesystem.spice.keyboard.KeyBoard.Companion.SCANCODE_ALTGR_MASK
+import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_CENTER_ENTER
+import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_SHIFT
 import com.vesystem.spice.keyboard.KeyBoard.Companion.SCANCODE_SHIFT_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_META_MASK
+import com.vesystem.spice.model.KMessageEvent
 import com.vesystem.spice.ui.widget.Fab
 import kotlinx.android.synthetic.main.activity_remote_canvas.*
 import org.greenrobot.eventbus.EventBus
@@ -123,18 +125,18 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     }*/
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun eventBus(messageEvent: com.vesystem.spice.model.KMessageEvent) {
+    fun eventBus(messageEvent: KMessageEvent) {
         Log.i("MessageEvent", "eventBus: ${messageEvent.requestCode}")
         when (messageEvent.requestCode) {
-            com.vesystem.spice.model.KMessageEvent.SPICE_CONNECT_SUCCESS -> Log.i(
+            KMessageEvent.SPICE_CONNECT_SUCCESS -> Log.i(
                 "MessageEvent",
                 "eventBus: 连接成功"
             )
-            com.vesystem.spice.model.KMessageEvent.SPICE_CONNECT_TIMEOUT -> {
+            KMessageEvent.SPICE_CONNECT_TIMEOUT -> {
                 Log.i("MessageEvent", "eventBus: 连接超时")
             }
             //失败原因：1、连接失败   2、连接超时  3、远程断开
-            com.vesystem.spice.model.KMessageEvent.SPICE_CONNECT_FAILURE -> {
+            KMessageEvent.SPICE_CONNECT_FAILURE -> {
                 val sc = canvas.spiceCommunicator?.get()
                 sc?.isConnectSucceed?.let {
                     //如果时连接情况下，被断开，视为其他设备占用，导致断开连接
@@ -150,7 +152,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                         }
                         else -> {
                             //2、连接时，返回得连接失败
-                            canvas.myHandler?.removeMessages(com.vesystem.spice.model.KMessageEvent.SPICE_CONNECT_TIMEOUT)
+                            canvas.myHandler?.removeMessages(KMessageEvent.SPICE_CONNECT_TIMEOUT)
                             Log.i("MessageEvent", "eventBus: 连接失败,无法连接或认证ca主题")
                         }
                     }
@@ -178,27 +180,30 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     }
 
 
-
+    private var tabSign: Boolean = false//解决，tab第一次按下时，只返回一次事件松开事件
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val isDown = event.action == KeyEvent.ACTION_DOWN
+
         //解决右键弹出菜单问题
-        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+        if (!event.isCtrlPressed && event.keyCode == KeyEvent.KEYCODE_BACK) {
             canvas.rightMouseButton(isDown)
             return true
         }
+
         //解决按下num lock按键后与上下左右冲突问题
         if (event.keyCode == KeyEvent.KEYCODE_NUM_LOCK) {
             return true
         }
+
         //解决左侧Enter按键无效问题
         if (event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-            sendKey(28, isDown)
+            sendKey(KEY_WIN_CENTER_ENTER, isDown, event)
             return true
         }
 
         val unicodeChar =
             event.getUnicodeChar(event.metaState and UNICODE_META_MASK.inv() and KeyEvent.META_ALT_MASK.inv())
-        Log.i(TAG, "dispatchKeyEvent unicodeChar: $unicodeChar,keycode:${event.keyCode}")
+//        Log.i(TAG, "dispatchKeyEvent unicodeChar: $unicodeChar,keycode:${event.keyCode}")
         val code: Int
         code = if (unicodeChar > 0) {
             unicodeChar or UNICODE_MASK
@@ -211,28 +216,56 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                 var sendCode = code
                 //处理shift+字母、符号、数字切换
                 if (code and SCANCODE_SHIFT_MASK != 0) {
-                    Log.i(TAG, "dispatchKeyEvent Found Shift mask. code:$code")
+//                    Log.i(TAG, "dispatchKeyEvent Found Shift mask. code:$code")
                     sendCode = code and SCANCODE_SHIFT_MASK.inv()
                     //解决右侧*、-、+输入不正确问题
-                    if (event.keyCode == 155 || event.keyCode == 157) {
-                        sendKey(42, isDown)
-                        sendKey(sendCode, isDown)
-                        Log.i(TAG, "dispatchKeyEvent: 为右侧*、+号键")
+                    if (event.keyCode == KeyEvent.KEYCODE_NUMPAD_MULTIPLY || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ADD) {
+                        sendKey(KEY_WIN_SHIFT, isDown, event)
+                        sendKey(sendCode, isDown, event)
+//                        Log.i(TAG, "dispatchKeyEvent: 为右侧*、+号键")
                         return true
                     }
                 }
-                if (code and SCANCODE_ALTGR_MASK != 0) {
-                    Log.i(TAG, "dispatchKeyEvent Found AltGr mask. code:$code")
-                    sendCode = code and SCANCODE_ALTGR_MASK.inv()
+
+                //处理alt事件
+                val altPressed = event.isAltPressed
+                if (altPressed && event.repeatCount == 0 && isDown && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT)) {
+//                    Log.i(TAG, "dispatchKeyEvent: alt true")
+                    sendKey(sendCode, isDown, event)
+                    return true
+                } else if (altPressed && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT) && event.action == KeyEvent.ACTION_UP) {
+//                    Log.i(TAG, "dispatchKeyEvent: alt+tab组合按键时，alt按下未松开，却响应了松开事件")
+                    return true
+                } else if (!altPressed && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT) && !isDown) {
+//                    Log.i(TAG, "dispatchKeyEvent: alt false")
+                    sendKey(sendCode, isDown, event)
+                    tabSign = false
+                    return true
                 }
-                sendKey(sendCode, isDown)
+
+                //处理alt+tab事件
+                if (altPressed && event.keyCode == KeyEvent.KEYCODE_TAB) {
+                    return if (!tabSign) {
+                        //Log.i(TAG, "dispatchKeyEvent: alt+tab组合按键时，首次只响应一次tab松开事件")
+                        sendKey(sendCode, true, event)
+                        sendKey(sendCode, false, event)
+                        tabSign = true
+                        true
+                    } else {
+                        //Log.i(TAG, "dispatchKeyEvent: alt+tab组合按键时，tab $isDown")
+                        sendKey(sendCode, isDown, event)
+                        true
+                    }
+                }
+                sendKey(sendCode, isDown, event)
             }
         }
         return true
     }
 
-    private fun sendKey(code: Int, down: Boolean) {
-        Log.i(TAG, "sendKey: $code,$down")
+
+    private fun sendKey(code: Int, down: Boolean, event: KeyEvent) {
+        Log.i(TAG, "sendKey: $code,$down,${event.repeatCount},${event.isAltPressed}")
         canvas.spiceCommunicator?.get()?.sendSpiceKeyEvent(down, code)
     }
 

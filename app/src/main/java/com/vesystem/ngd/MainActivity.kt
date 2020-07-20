@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         btnConnect.setOnClickListener {
-            Spice.connect("192.168.30.61", "5901", "zxlb67fhea", true)
+            Spice.connect("192.168.30.62", "5913", "pfnus7ov4z", true)
                 .start(this.applicationContext)
 //            startActivity(Intent(this, RemoteCanvasActivity::class.java))
         }

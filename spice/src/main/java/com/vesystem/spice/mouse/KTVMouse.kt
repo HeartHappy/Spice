@@ -2,7 +2,6 @@ package com.vesystem.spice.mouse
 
 import android.content.Context
 import android.util.Log
-import android.view.GestureDetector
 import android.view.MotionEvent
 
 /**
@@ -10,95 +9,108 @@ import android.view.MotionEvent
  * @author ChenRui
  * ClassDescription:TV端得鼠标操作
  */
-class KTVMouse(val context: Context, private val mouseOption: IMouseOperation) :
-    GestureDetector.SimpleOnGestureListener() {
+class KTVMouse(val context: Context, private val mouseOption: IMouseOperation) {
 
     private val TAG = "KTVPointer"
-    var gestureDetector: GestureDetector? = null
     var signMouseOperation = 0
-    var isDouble = false
-    //TODO 区分鼠标的移动是否按下和鼠标的hover移动，还存在问题
-    var isDown = false
-
-    init {
-        gestureDetector = GestureDetector(context, this)
-    }
+    private var mouseX: Int = 0
+    private var mouseY: Int = 0
 
 
-    fun downMouseRightButton(x: Int, y: Int) {
+    //TODO 没有实时变化是没有reDraw更新UI
+    fun downMouseRightButton() {
         signMouseOperation = SPICE_MOUSE_BUTTON_RIGHT
-        mouseOption.rightButtonDown(x, y, 0, SPICE_MOUSE_BUTTON_RIGHT)
+        mouseOption.handlerMouseEvent(mouseX, mouseY, 0, SPICE_MOUSE_BUTTON_RIGHT, false)
     }
 
-    fun upMouseRightButton(mouseX: Int, mouseY: Int) {
-        mouseOption.rightButtonUp(mouseX, mouseY, 0, SPICE_MOUSE_BUTTON_RIGHT)
-    }
-
-
-    override fun onSingleTapUp(e: MotionEvent): Boolean {
-        Log.i(TAG, "onSingleTapUp: ")
+    fun upMouseRightButton() {
         signMouseOperation = 0
-        mouseOption.leftButtonUp(e.x.toInt(), e.y.toInt(), e.metaState, SPICE_MOUSE_BUTTON_LEFT)
-        isDown = false
-        return true
+        mouseOption.handlerMouseEvent(mouseX, mouseY, 0, SPICE_MOUSE_BUTTON_RIGHT, false)
     }
 
-    override fun onDown(e: MotionEvent): Boolean {
-        if (!isDouble) {
-            isDown = true
-            signMouseOperation = SPICE_MOUSE_BUTTON_LEFT
-            mouseOption.leftButtonDown(
-                e.x.toInt(),
-                e.y.toInt(),
-                e.metaState,
-                SPICE_MOUSE_BUTTON_LEFT
-            )
-            Log.i(TAG, "onDown: ")
-        } else {
-            isDouble = false
+
+    fun onTouchEvent(event: MotionEvent): Boolean {
+//        Log.i(TAG, "onTouchEvent: ${event.action}")
+        mouseX = event.x.toInt()
+        mouseY = event.y.toInt()
+        val metaState = event.metaState
+        when (event.action) {
+            MotionEvent.ACTION_SCROLL -> {
+                Log.i(TAG, "onTouchEvent: 中间键滚动")
+                val axisValue = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
+                if (axisValue < 0) {
+                    //下滑
+                    signMouseOperation = SPICE_MOUSE_MIDDLE_SCROLL_DOWN
+                    mouseOption.handlerMouseEvent(
+                        mouseX,
+                        mouseY,
+                        metaState,
+                        SPICE_MOUSE_MIDDLE_SCROLL_DOWN,
+                        false
+                    )
+                } else {
+                    //上滑
+                    signMouseOperation = SPICE_MOUSE_MIDDLE_SCROLL_UP
+                    mouseOption.handlerMouseEvent(
+                        mouseX,
+                        mouseY,
+                        metaState,
+                        SPICE_MOUSE_MIDDLE_SCROLL_UP,
+                        false
+                    )
+                }
+                mouseOption.releaseMouseEvent(mouseX, mouseY, 0, signMouseOperation, false)
+                return true
+            }
+            MotionEvent.ACTION_BUTTON_PRESS -> {
+                Log.i(TAG, "onTouchEvent: 按下")
+                signMouseOperation = SPICE_MOUSE_BUTTON_LEFT
+                mouseOption.handlerMouseEvent(
+                    mouseX,
+                    mouseY,
+                    metaState,
+                    SPICE_MOUSE_BUTTON_LEFT,
+                    false
+                )
+            }
+            MotionEvent.ACTION_BUTTON_RELEASE -> {
+                Log.i(TAG, "onTouchEvent: 松开")
+                signMouseOperation = 0
+                mouseOption.handlerMouseEvent(
+                    mouseX,
+                    mouseY,
+                    metaState,
+                    SPICE_MOUSE_BUTTON_LEFT,
+                    false
+                )
+                return true
+            }
+            MotionEvent.ACTION_MOVE -> {
+                Log.i(TAG, "onTouchEvent: 按下移动：X:${event.x},Y:${event.y}")
+                /* signMouseOperation = SPICE_MOUSE_BUTTON_LEFT
+                 mouseOption.handlerMouseEvent(
+                     mouseX,
+                     mouseY,
+                     metaState,
+                     SPICE_MOUSE_BUTTON_LEFT,
+                     true
+                 )*/
+                return true
+            }
+            MotionEvent.ACTION_HOVER_MOVE -> {
+                Log.i(TAG, "onTouchEvent: 鼠标移动X:${event.x},Y:${event.y}")
+                signMouseOperation = SPICE_MOUSE_BUTTON_MOVE
+                mouseOption.mouseMove(mouseX, mouseY, metaState, SPICE_MOUSE_BUTTON_MOVE, false)
+                return true
+            }
+            /*MotionEvent.ACTION_HOVER_ENTER -> {
+                signMouseOperation = 0
+                mouseOption.releaseMouseEvent(mouseX, mouseY, metaState, signMouseOperation, false)
+                Log.i(TAG, "onTouchEvent: hover进入释放之前移动鼠标")
+            }*/
+
         }
-        return true
-    }
-
-
-    override fun onDoubleTap(e: MotionEvent): Boolean {
-        signMouseOperation = SPICE_MOUSE_BUTTON_LEFT
-        mouseOption.leftButtonDown(e.x.toInt(), e.y.toInt(), e.metaState, SPICE_MOUSE_BUTTON_LEFT)
-        mouseOption.leftButtonUp(e.x.toInt(), e.y.toInt(), e.metaState, SPICE_MOUSE_BUTTON_LEFT)
-        signMouseOperation = 0
-        isDouble = true
-        Log.i(TAG, "onDoubleTap: ")
         return false
-    }
-
-    override fun onFling(
-        e1: MotionEvent?,
-        e2: MotionEvent?,
-        velocityX: Float,
-        velocityY: Float
-    ): Boolean {
-//        Log.i(TAG, "onFling: ")
-        return true
-    }
-
-    override fun onScroll(
-        e1: MotionEvent,
-        e2: MotionEvent,
-        distanceX: Float,
-        distanceY: Float
-    ): Boolean {
-//        Log.i(TAG, "onScroll: ")
-        /*mouseOption.leftButtonDown(
-            e1.x.toInt(),
-            e1.y.toInt(),
-            e1.metaState,
-            SPICE_MOUSE_BUTTON_LEFT
-        )*/
-        return false
-    }
-
-    override fun onLongPress(e: MotionEvent?) {
-        Log.i(TAG, "onLongPress: ")
     }
 
 
@@ -109,7 +121,8 @@ class KTVMouse(val context: Context, private val mouseOption: IMouseOperation) :
         const val SPICE_MOUSE_BUTTON_LEFT = 1
         const val SPICE_MOUSE_BUTTON_MIDDLE = 2
         const val SPICE_MOUSE_BUTTON_RIGHT = 3
-        const val SPICE_MOUSE_BUTTON_UP = 4
-        const val SPICE_MOUSE_BUTTON_DOWN = 5
+        const val SPICE_MOUSE_MIDDLE_SCROLL_UP = 4
+        const val SPICE_MOUSE_MIDDLE_SCROLL_DOWN = 5
     }
+
 }

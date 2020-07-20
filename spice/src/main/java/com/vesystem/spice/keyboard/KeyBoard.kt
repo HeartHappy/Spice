@@ -54,5 +54,11 @@ class KeyBoard(r: Resources) {
         const val UNICODE_META_MASK =
             KeyEvent.META_CTRL_MASK or KeyEvent.META_META_MASK or KeyEvent.META_CAPS_LOCK_ON
 
+        //window键盘对应key
+        val KEY_WIN_SHIFT = 42
+        val KEY_WIN_ALT = 56
+        val KEY_WIN_TAB = 15
+        const val KEY_WIN_CENTER_ENTER = 28
+
     }
 }

@@ -7,19 +7,29 @@ package com.vesystem.spice.mouse
  */
 interface IMouseOperation {
 
-    fun leftButtonDown(x: Int, y: Int, metaState: Int, mouseType: Int)
 
-    fun leftButtonUp(x: Int, y: Int, metaState: Int, mouseType: Int)
+    fun handlerMouseEvent(
+        x: Int,
+        y: Int,
+        metaState: Int,
+        mouseType: Int,
+        isMove: Boolean
+    )
 
-    fun middleButtonDown(x: Int, y: Int, metaState: Int)
+    /**
+     * 鼠标移动
+     */
+    fun mouseMove(
+        x: Int, y: Int, metaState: Int,
+        mouseType: Int,
+        isMove: Boolean
+    )
 
-    fun rightButtonDown(x: Int, y: Int, metaState: Int, mouseType: Int)
-
-    fun rightButtonUp(x: Int, y: Int, metaState: Int, mouseType: Int)
-
-    fun scrollUp(x: Int, y: Int, metaState: Int)
-
-    fun scrollDown(x: Int, y: Int, metaState: Int)
-
-    fun releaseButton(x: Int, y: Int, metaState: Int)
+    fun releaseMouseEvent(
+        x: Int,
+        y: Int,
+        metaState: Int,
+        mouseType: Int,
+        isMove: Boolean
+    )
 }

@@ -2,6 +2,7 @@ package com.vesystem.spice.model
 
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.util.Log
 import com.vesystem.spice.ui.KRemoteCanvasActivity
 import java.io.File
@@ -17,14 +18,14 @@ class Spice {
     companion object {
         var ip: String by Delegates.notNull()
         var port: String by Delegates.notNull()
-        val tport = "-1"
+        const val tPort = "-1"
         var password: String by Delegates.notNull()
         var cf: String by Delegates.notNull()
         val ca: String? = null
-        val cs: String = ""
+        const val cs: String = ""
         var sound: Boolean by Delegates.notNull()
 
-        fun connect(ip: String, port: String, password: String, sound: Boolean):Companion {
+        fun connect(ip: String, port: String, password: String, sound: Boolean): Companion {
             this.ip = ip
             this.port = port
             this.password = password
@@ -35,7 +36,9 @@ class Spice {
         fun start(context: Context) {
             cf = context.filesDir.path + File.separator + "ca0.pem"
             Log.e("Spice,", "start: $cf")
-            context.startActivity(Intent(context, KRemoteCanvasActivity::class.java))
+            val intent = Intent(context, KRemoteCanvasActivity::class.java)
+            intent.flags = FLAG_ACTIVITY_NEW_TASK
+            context.startActivity(intent)
         }
     }
 }

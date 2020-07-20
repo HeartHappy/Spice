@@ -1,6 +1,5 @@
 package com.vesystem.spice.ui
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -9,7 +8,6 @@ import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.util.AttributeSet
 import android.util.Log
-import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatImageView
 import com.vesystem.opaque.SpiceCommunicator
 import com.vesystem.spice.interfaces.KSpiceConnect
@@ -46,8 +44,6 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
     private var canvasBitmap: Bitmap? = null
     var myHandler: Handler? = null
     var ktvMouse: KTVMouse? = null
-    private var mouseX: Int = 0
-    private var mouseY: Int = 0
 
     init {
         setBackgroundColor(Color.BLACK)
@@ -62,7 +58,6 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             }
             false
         })
-
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -132,7 +127,7 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
         spiceCommunicator?.get()?.connectSpice(
             Spice.ip,
             Spice.port,
-            Spice.tport,
+            Spice.tPort,
             Spice.password,
             Spice.cf,
             Spice.ca,
@@ -232,88 +227,35 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
 
 
     /**
-     * 鼠标的操作，单击、双击、滚动
+     * 监听鼠标按下时得移动
      */
-    @SuppressLint("ClickableViewAccessibility")
+    /*@SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        Log.i(TAG, "onTouchEvent: ")
-        ktvMouse?.gestureDetector?.onTouchEvent(event)
+        Log.i(TAG, "onTouchEvent: ${event.action}")
+        ktvMouse?.onTouchEvent(event)
         return true
-    }
-
+    }*/
 
     /**
-     * TV端鼠标移动坐标
+     * 鼠标移动、按下、松开、中间键滚动
      */
-    override fun onHoverEvent(event: MotionEvent): Boolean {
-        ktvMouse?.isDown?.let {
-            if(!it){
-                mouseX = event.x.toInt()
-                mouseY = event.y.toInt()
-                spiceCommunicator?.get()?.writePointerEvent(
-                    mouseX, mouseY, 0,
-                    0, false
-                )
-                reDraw(mouseX, mouseY, width, height)
-                Log.i(TAG, "KTVPointer: X:${event.x},Y:${event.y}")
-            }
+   /* override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        ktvMouse?.let {
+            return it.onTouchEvent(event)
         }
-        return super.onHoverEvent(event)
-    }
-
-    override fun leftButtonDown(x: Int, y: Int, metaState: Int, mouseType: Int) {
-        handlerMouseDownEvent(x, y, metaState, mouseType)
-    }
-
-    override fun leftButtonUp(x: Int, y: Int, metaState: Int, mouseType: Int) {
-        handlerMouseUpEvent(x, y, metaState, mouseType)
-    }
-
-
-    override fun middleButtonDown(x: Int, y: Int, metaState: Int) {
-        TODO("Not yet implemented")
-    }
-
-    override fun rightButtonDown(x: Int, y: Int, metaState: Int, mouseType: Int) {
-        handlerMouseDownEvent(x, y, metaState, mouseType)
-    }
-
-    override fun rightButtonUp(x: Int, y: Int, metaState: Int, mouseType: Int) {
-        handlerMouseUpEvent(x,y,metaState,mouseType)
-    }
-
-
-    override fun scrollUp(x: Int, y: Int, metaState: Int) {
-        TODO("Not yet implemented")
-    }
-
-    override fun scrollDown(x: Int, y: Int, metaState: Int) {
-        TODO("Not yet implemented")
-    }
-
-    override fun releaseButton(x: Int, y: Int, metaState: Int) {
-        TODO("Not yet implemented")
-    }
-
-
-    //鼠标右键的按下、松开操作
-    fun rightMouseButton(isDown: Boolean) {
-        if (isDown) {
-            ktvMouse?.downMouseRightButton(mouseX, mouseY)
-        } else {
-            ktvMouse?.upMouseRightButton(mouseX, mouseY)
-        }
-    }
+        return super.onGenericMotionEvent(event)
+    }*/
 
 
     /**
      * 处理鼠标按下事件
      */
-    private fun handlerMouseDownEvent(
+    override fun handlerMouseEvent(
         x: Int,
         y: Int,
         metaState: Int,
-        mouseType: Int
+        mouseType: Int,
+        isMove: Boolean
     ) {
         spiceCommunicator?.get()
             ?.writePointerEvent(
@@ -321,7 +263,7 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
                 y,
                 metaState,
                 mouseType and POINTER_DOWN_MASK.inv(),
-                false
+                isMove
             )
         spiceCommunicator?.get()
             ?.writePointerEvent(
@@ -329,20 +271,33 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
                 y,
                 metaState,
                 mouseType or POINTER_DOWN_MASK,
-                false
+                isMove
             )
+    }
 
+
+    override fun mouseMove(
+        x: Int, y: Int, metaState: Int,
+        mouseType: Int,
+        isMove: Boolean
+    ) {
+        spiceCommunicator?.get()?.writePointerEvent(
+            x, y, metaState,
+            mouseType, isMove
+        )
+        reDraw(x, y, width, height)
     }
 
 
     /**
-     * 处理鼠标松开事件
+     * 处理鼠标松开事件、重置鼠标
      */
-    private fun handlerMouseUpEvent(
+    override fun releaseMouseEvent(
         x: Int,
         y: Int,
         metaState: Int,
-        mouseType: Int
+        mouseType: Int,
+        isMove: Boolean
     ) {
         spiceCommunicator?.get()
             ?.writePointerEvent(
@@ -350,10 +305,20 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
                 y,
                 metaState,
                 mouseType and POINTER_DOWN_MASK.inv(),
-                false
+                isMove
             )
         spiceCommunicator?.get()
-            ?.writePointerEvent(x, y, metaState, 0, false)
+            ?.writePointerEvent(x, y, metaState, 0, isMove)
+    }
+
+
+    //鼠标右键的按下、松开操作
+    fun rightMouseButton(isDown: Boolean) {
+        if (isDown) {
+            ktvMouse?.downMouseRightButton()
+        } else {
+            ktvMouse?.upMouseRightButton()
+        }
     }
 
 
