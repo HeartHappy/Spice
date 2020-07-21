@@ -3,7 +3,7 @@ package com.vesystem.spice.interfaces
 /**
  * Created Date 2020/7/7.
  * @author ChenRui
- * ClassDescription:
+ * ClassDescription:Spice连接相关接口
  */
 interface KSpiceConnect {
     fun onUpdateBitmapWH(width: Int, height: Int)
@@ -15,4 +15,6 @@ interface KSpiceConnect {
     fun onMouseMode(relative: Boolean)
 
     fun onConnectSucceed()
+
+    fun onConnectFail()
 }

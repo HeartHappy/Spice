@@ -1,5 +1,6 @@
 package com.vesystem.spice.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -8,11 +9,13 @@ import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatImageView
 import com.vesystem.opaque.SpiceCommunicator
 import com.vesystem.spice.interfaces.KSpiceConnect
 import com.vesystem.spice.interfaces.KViewable
 import com.vesystem.spice.model.KMessageEvent
+import com.vesystem.spice.model.KMessageEvent.Companion.SPICE_CONNECT_FAILURE
 import com.vesystem.spice.model.KMessageEvent.Companion.SPICE_CONNECT_TIMEOUT
 import com.vesystem.spice.model.Spice
 import com.vesystem.spice.mouse.IMouseOperation
@@ -55,6 +58,9 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
                             SPICE_CONNECT_TIMEOUT
                         )
                     )
+                SPICE_CONNECT_FAILURE -> {
+                    EventBus.getDefault().post(KMessageEvent(SPICE_CONNECT_FAILURE))
+                }
             }
             false
         })
@@ -97,7 +103,9 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             }
 
             override fun onConnectSucceed() {
+                Log.i(TAG, "onConnectSucceed: 连接成功")
                 myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
+                myHandler?.removeMessages(SPICE_CONNECT_FAILURE)
                 EventBus.getDefault().post(
                     KMessageEvent(
                         KMessageEvent.SPICE_CONNECT_SUCCESS
@@ -107,11 +115,17 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
                     ktvMouse = KTVMouse(context.applicationContext, this@KRemoteCanvas)
                 }
             }
+
+            override fun onConnectFail() {
+                Log.i(TAG, "onConnectFail: 连接失败")
+                myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
+                myHandler?.sendEmptyMessageDelayed(SPICE_CONNECT_FAILURE, 3 * 1000)
+            }
         })
 
 
         scope = WeakReference(GlobalScope.launch {
-            myHandler?.sendEmptyMessageDelayed(SPICE_CONNECT_TIMEOUT, 5000)
+            myHandler?.sendEmptyMessageDelayed(SPICE_CONNECT_TIMEOUT, 5 * 1000)
             enabledConnectSpice()
             enabledConnectSpice()
         })
@@ -191,10 +205,10 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
         val top = ((shiftedY - 1f) * scale).toInt()
         val right = ((shiftedX + width + 1f) * scale).toInt()
         val bottom = ((shiftedY + height + 1f) * scale).toInt()
-        Log.i(
-            TAG,
-            "reDraw: L:$left,T:$top,R:$right,B:$bottom,S:$scale"
-        )
+        /* Log.i(
+             TAG,
+             "reDraw: L:$left,T:$top,R:$right,B:$bottom,S:$scale"
+         )*/
         postInvalidate(
             left, top,
             right, bottom
@@ -227,22 +241,22 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
     /**
      * 监听鼠标按下时得移动
      */
-    /*@SuppressLint("ClickableViewAccessibility")
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         Log.i(TAG, "onTouchEvent: ${event.action}")
         ktvMouse?.onTouchEvent(event)
         return true
-    }*/
+    }
 
     /**
      * 鼠标移动、按下、松开、中间键滚动
      */
-   /* override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
         ktvMouse?.let {
             return it.onTouchEvent(event)
         }
         return super.onGenericMotionEvent(event)
-    }*/
+    }
 
 
     /**
@@ -273,12 +287,19 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             )
     }
 
+    override fun mouseDownMove(x: Int, y: Int, metaState: Int, mouseType: Int, isMove: Boolean) {
+        spiceCommunicator?.get()
+            ?.writePointerEvent(
+                x,
+                y,
+                metaState,
+                mouseType or POINTER_DOWN_MASK,
+                isMove
+            )
+    }
 
-    override fun mouseMove(
-        x: Int, y: Int, metaState: Int,
-        mouseType: Int,
-        isMove: Boolean
-    ) {
+
+    override fun mouseMove(x: Int, y: Int, metaState: Int, mouseType: Int, isMove: Boolean) {
         spiceCommunicator?.get()?.writePointerEvent(
             x, y, metaState,
             mouseType, isMove

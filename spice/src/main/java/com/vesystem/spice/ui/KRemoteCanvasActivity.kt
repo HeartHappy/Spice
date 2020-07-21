@@ -1,6 +1,10 @@
+@file:Suppress("DEPRECATION")
+
 package com.vesystem.spice.ui
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.content.Context
 import android.graphics.Rect
 import android.os.Bundle
@@ -39,6 +43,8 @@ import kotlin.properties.Delegates
 class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     private var materialSheetFab by Delegates.notNull<MaterialSheetFab<Fab>>()
     private var keyBoard: KeyBoard? = null
+    private var dialog: ProgressDialog? = null
+    private var alertDialog: AlertDialog? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -50,6 +56,15 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         initView()
 
         initSoftKeyBoard()
+
+        dialog = ProgressDialog.show(
+            this,
+            getString(R.string.info_progress_dialog_connecting),
+            getString(R.string.info_progress_dialog_establishing),
+            true,
+            true
+        )
+        dialog?.setCanceledOnTouchOutside(false)
     }
 
 
@@ -128,39 +143,59 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun eventBus(messageEvent: KMessageEvent) {
         Log.i("MessageEvent", "eventBus: ${messageEvent.requestCode}")
+        dialog?.dismiss()
         when (messageEvent.requestCode) {
             KMessageEvent.SPICE_CONNECT_SUCCESS -> Log.i(
                 "MessageEvent",
                 "eventBus: 连接成功"
             )
             KMessageEvent.SPICE_CONNECT_TIMEOUT -> {
-                Log.i("MessageEvent", "eventBus: 连接超时")
+//                Log.i("MessageEvent", "eventBus: 连接超时")
+                dialogHint("连接超时")
             }
-            //失败原因：1、连接失败   2、连接超时  3、远程断开
+            //失败原因：1、连接失败   2、连接超时  3、远程被断开
             KMessageEvent.SPICE_CONNECT_FAILURE -> {
                 val sc = canvas.spiceCommunicator?.get()
                 sc?.isConnectSucceed?.let {
                     //如果时连接情况下，被断开，视为其他设备占用，导致断开连接
                     when {
+                        //远程连接被断开
                         sc.isConnectSucceed -> {
-                            Log.i("MessageEvent", "eventBus: 远程连接断开")
                             sc.disconnect()
-                            //如果是点击时，断开得连接
+                            dialogHint("远程连接被断开")
                         }
+                        //点击断开连接，返回得失败
                         sc.isClickDisconnect -> {
-                            Log.i("MessageEvent", "eventBus:点击导致得断开连接，返回得失败 ")
-                            //1、主动点击断开时，返回得连接失败
+//                            Log.i("MessageEvent", "eventBus:点击导致得断开连接，返回得失败 ")
                         }
+                        //连接时，返回得连接失败,  注意：需要区分两次连接导致得连接失败，还是配置参数导致得失败
                         else -> {
-                            //2、连接时，返回得连接失败
-                            canvas.myHandler?.removeMessages(KMessageEvent.SPICE_CONNECT_TIMEOUT)
-                            Log.i("MessageEvent", "eventBus: 连接失败,无法连接或认证ca主题")
+//                            Log.i("MessageEvent", "eventBus: 连接失败,无法连接或认证ca主题")
+                            dialogHint("连接失败,无法连接或认证ca主题")
                         }
                     }
                 }
             }
 
             else -> Log.i("MessageEvent", "eventBus: 其他")
+        }
+    }
+
+    private fun dialogHint(message: String) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("错误")
+        builder.setMessage(message)
+        builder.setCancelable(false)
+        builder.setPositiveButton(
+            "确定"
+        ) { dialog, _ ->
+            dialog.dismiss()
+            finish()
+        }
+        if (!(alertDialog != null && alertDialog?.isShowing!!)) {
+            Log.i("DialogHint", "dialogHint: $message")
+            alertDialog = builder.create()
+            alertDialog?.show()
         }
     }
 
@@ -198,7 +233,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
 
         //解决左侧Enter按键无效问题
         if (event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-            sendKey(KEY_WIN_CENTER_ENTER, isDown, event)
+            sendKey(KEY_WIN_CENTER_ENTER, isDown)
             return true
         }
 
@@ -221,8 +256,8 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                     sendCode = code and SCANCODE_SHIFT_MASK.inv()
                     //解决右侧*、-、+输入不正确问题
                     if (event.keyCode == KeyEvent.KEYCODE_NUMPAD_MULTIPLY || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ADD) {
-                        sendKey(KEY_WIN_SHIFT, isDown, event)
-                        sendKey(sendCode, isDown, event)
+                        sendKey(KEY_WIN_SHIFT, isDown)
+                        sendKey(sendCode, isDown)
 //                        Log.i(TAG, "dispatchKeyEvent: 为右侧*、+号键")
                         return true
                     }
@@ -232,14 +267,14 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                 val altPressed = event.isAltPressed
                 if (altPressed && event.repeatCount == 0 && isDown && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT)) {
 //                        Log.i(TAG, "dispatchKeyEvent:left or right alt true")
-                    sendKey(KeyBoard.KEY_WIN_ALT, isDown, event)
+                    sendKey(KeyBoard.KEY_WIN_ALT, isDown)
                     return true
                 } else if (altPressed && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT) && !isDown) {
 //                    Log.i(TAG, "dispatchKeyEvent: alt+tab组合按键时，alt按下未松开，却响应了松开事件")
                     return true
                 } else if (!altPressed && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT) && !isDown) {
 //                    Log.i(TAG, "dispatchKeyEvent:left or right alt false")
-                    sendKey(KeyBoard.KEY_WIN_ALT, isDown, event)
+                    sendKey(KeyBoard.KEY_WIN_ALT, isDown)
                     tabSign = false
                     return true
                 }
@@ -248,30 +283,29 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                 if (altPressed && event.keyCode == KeyEvent.KEYCODE_TAB) {
                     return if (!tabSign) {
                         //Log.i(TAG, "dispatchKeyEvent: alt+tab组合按键时，首次只响应一次tab松开事件")
-                        sendKey(sendCode, true, event)
-                        sendKey(sendCode, false, event)
+                        sendKey(sendCode, true)
+                        sendKey(sendCode, false)
                         tabSign = true
                         true
                     } else {
                         //Log.i(TAG, "dispatchKeyEvent: alt+tab组合按键时，tab $isDown")
-                        sendKey(sendCode, isDown, event)
+                        sendKey(sendCode, isDown)
                         true
                     }
                 }
 
                 if (event.keyCode == KeyEvent.KEYCODE_CTRL_RIGHT || event.keyCode == KeyEvent.KEYCODE_CTRL_LEFT) {
-                    sendKey(KeyBoard.KEY_WIN_CTRL, isDown, event)
+                    sendKey(KeyBoard.KEY_WIN_CTRL, isDown)
                     return true
                 }
-                sendKey(sendCode, isDown, event)
+                sendKey(sendCode, isDown)
             }
         }
         return true
     }
 
 
-    private fun sendKey(code: Int, down: Boolean, event: KeyEvent) {
-        Log.i(TAG, "sendKey: $code,$down,${event.repeatCount},${event.isAltPressed}")
+    private fun sendKey(code: Int, down: Boolean) {
         canvas.spiceCommunicator?.get()?.sendSpiceKeyEvent(down, code)
     }
 
@@ -298,9 +332,5 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             }
         }
         canvas.scope?.get()?.cancel()
-    }
-
-    companion object {
-        private const val TAG = "KRemoteCanvasActivity"
     }
 }

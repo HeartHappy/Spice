@@ -8,7 +8,22 @@ package com.vesystem.spice.mouse
 interface IMouseOperation {
 
 
+    /**
+     * 发送鼠标事件，包括按下左键、右键、中间键上滑动、下滑动、右键。发送 key和 mask
+     */
     fun handlerMouseEvent(
+        x: Int,
+        y: Int,
+        metaState: Int,
+        mouseType: Int,
+        isMove: Boolean
+    )
+
+
+    /**
+     * 鼠标按下移动
+     */
+    fun mouseDownMove(
         x: Int,
         y: Int,
         metaState: Int,
@@ -20,11 +35,16 @@ interface IMouseOperation {
      * 鼠标移动
      */
     fun mouseMove(
-        x: Int, y: Int, metaState: Int,
+        x: Int,
+        y: Int,
+        metaState: Int,
         mouseType: Int,
         isMove: Boolean
     )
 
+    /**
+     * 释放鼠标事件 重置key和 mask
+     */
     fun releaseMouseEvent(
         x: Int,
         y: Int,

@@ -11,7 +11,7 @@ import java.util.*
 /**
  * Created Date 2020/7/9.
  * @author ChenRui
- * ClassDescription:
+ * ClassDescription:键盘 Key value
  */
 class KeyBoard(r: Resources) {
     var keyCode: HashMap<Int, Array<Int?>>? = null

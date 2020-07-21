@@ -9,8 +9,8 @@
     <com.vesystem.spice.ui.KRemoteCanvas
         android:id="@+id/canvas"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
 
 
     <!--特殊键盘-->
