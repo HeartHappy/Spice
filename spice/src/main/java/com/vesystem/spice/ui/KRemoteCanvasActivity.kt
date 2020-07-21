@@ -97,7 +97,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             if (!isSoftShowing()) {
                 Toast.makeText(
                     canvas.context,
-                    "系统没有自带软键盘，请插入物理键盘操作！",
+                    getString(R.string.the_system_has_no_keyboard),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -142,7 +142,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun eventBus(messageEvent: KMessageEvent) {
-        Log.i("MessageEvent", "eventBus: ${messageEvent.requestCode}")
+//        Log.i("MessageEvent", "eventBus: ${messageEvent.requestCode}")
         dialog?.dismiss()
         when (messageEvent.requestCode) {
             KMessageEvent.SPICE_CONNECT_SUCCESS -> Log.i(
@@ -151,7 +151,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             )
             KMessageEvent.SPICE_CONNECT_TIMEOUT -> {
 //                Log.i("MessageEvent", "eventBus: 连接超时")
-                dialogHint("连接超时")
+                dialogHint(getString(R.string.error_connect_timeout))
             }
             //失败原因：1、连接失败   2、连接超时  3、远程被断开
             KMessageEvent.SPICE_CONNECT_FAILURE -> {
@@ -162,7 +162,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                         //远程连接被断开
                         sc.isConnectSucceed -> {
                             sc.disconnect()
-                            dialogHint("远程连接被断开")
+                            dialogHint(getString(R.string.error_connection_interrupted))
                         }
                         //点击断开连接，返回得失败
                         sc.isClickDisconnect -> {
@@ -171,7 +171,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                         //连接时，返回得连接失败,  注意：需要区分两次连接导致得连接失败，还是配置参数导致得失败
                         else -> {
 //                            Log.i("MessageEvent", "eventBus: 连接失败,无法连接或认证ca主题")
-                            dialogHint("连接失败,无法连接或认证ca主题")
+                            dialogHint(getString(R.string.error_spice_unable_to_connect))
                         }
                     }
                 }
@@ -183,17 +183,16 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
 
     private fun dialogHint(message: String) {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("错误")
+        builder.setTitle(getString(R.string.error))
         builder.setMessage(message)
         builder.setCancelable(false)
         builder.setPositiveButton(
-            "确定"
+            getString(R.string.confirm)
         ) { dialog, _ ->
             dialog.dismiss()
             finish()
         }
         if (!(alertDialog != null && alertDialog?.isShowing!!)) {
-            Log.i("DialogHint", "dialogHint: $message")
             alertDialog = builder.create()
             alertDialog?.show()
         }

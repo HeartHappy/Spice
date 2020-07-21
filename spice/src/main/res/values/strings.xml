@@ -145,6 +145,7 @@
     <string name="error_vnc_unable_to_connect">"与VNC服务器的连接失败了，原因如下："</string>
     <string name="error_x509_could_not_generate_encoding">无法生成证书编码。</string>
     <string name="error_x509_could_not_generate_signature">无法生成证书的SHA1或MD5签名。找不到SHA1 / MD5算法。</string>
+    <string name="error_connect_timeout">连接超时</string>
     <string name="export_settings">导出</string>
     <string name="export_settings_path" />
     <string name="extra_keys_disable">使特殊键无效</string>
@@ -641,6 +642,7 @@ aSPICE对应的功能如下：
     <string name="cert_issuer">证书颁发行人</string>
     <string name="cert_fingerprint">证书指纹</string>
     <string name="error">错误</string>
+    <string name="confirm">确定</string>
     <string name="panning">平移屏幕</string>
     <string name="copy_of">复制</string>
     <string name="ssh_key_generated">成功生成或导入新密钥。 您可以点击\'Generate/Export Key\'按钮来共享、复制到剪贴板或导出公钥。</string>
@@ -669,5 +671,6 @@ aSPICE对应的功能如下：
     <string name="touch_key" translatable="false">触控鼠标</string>
     <string name="disconnect" translatable="false">断开连接</string>
     <string name="zoom" translatable="false">缩放操作</string>
+    <string name="the_system_has_no_keyboard" translatable="false">系统没有自带软键盘，请插入物理键盘操作！</string>
 
 </resources>
