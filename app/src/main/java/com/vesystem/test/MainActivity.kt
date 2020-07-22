@@ -1,4 +1,4 @@
-package com.vesystem.ngd
+package com.vesystem.test
 
 import android.graphics.Color
 import android.os.Build

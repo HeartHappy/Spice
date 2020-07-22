@@ -1,9 +1,8 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:ignore="MergeRootFrame">
+    >
 
 
     <com.vesystem.spice.ui.KRemoteCanvas
@@ -82,75 +81,20 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!--菜单按钮-->
-    <com.vesystem.spice.ui.widget.Fab
-        android:id="@+id/floatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <FrameLayout
+        android:id="@+id/flRemoteMenu"
+        android:layout_width="@dimen/dp_40"
+        android:layout_height="@dimen/dp_40"
         android:layout_gravity="right|bottom"
         android:layout_margin="@dimen/dp_40"
-        android:backgroundTint="@color/col_remote_dis"
-        android:src="@mipmap/menu"
-        app:borderWidth="0dp"
-        app:elevation="8dp"
-        app:layout_behavior="com.vesystem.spice.ui.widget.FloatingBehavior"
-        app:rippleColor="@color/col_gray"
-        tools:ignore="RtlHardcoded"
-        tools:targetApi="lollipop" />
+        android:background="@drawable/bg_oval_blue"
+        android:gravity="center"
+        tools:ignore="ContentDescription,RtlHardcoded">
 
-    <com.gordonwong.materialsheetfab.DimOverlayFrameLayout
-        android:id="@+id/overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <!-- Circular reveal container for the sheet -->
-    <io.codetail.widget.RevealLinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="end|bottom"
-        android:orientation="vertical">
-
-        <!-- Sheet that contains your items -->
-        <FrameLayout
-            android:id="@+id/fab_sheet"
-            android:layout_width="130dp"
-            android:layout_height="120dp"
-            android:background="@drawable/bg_menu_radius">
-
-            <!-- Sheet items -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                tools:ignore="UselessParent">
-
-                <!-- <TextView
-                     android:id="@+id/session_touch_pointer"
-                     style="@style/style_bvnc_float_btn_item"
-                     android:drawableStart="@mipmap/iconck"
-                     android:drawableLeft="@mipmap/iconck"
-                     android:text="@string/operator_mode" />-->
-
-                <TextView
-                    android:id="@+id/session_sys_keyboard"
-                    style="@style/style_bvnc_float_btn_item"
-                    android:drawableStart="@mipmap/iconjp"
-                    android:drawableLeft="@mipmap/iconjp"
-                    android:text="@string/sys_key" />
-
-                <TextView
-                    android:id="@+id/session_disconnect"
-                    style="@style/style_bvnc_float_btn_item"
-                    android:drawableStart="@mipmap/icondk"
-                    android:drawableLeft="@mipmap/icondk"
-                    android:text="@string/disconnect" />
-
-                <!--<TextView
-                    android:id="@+id/tvZoom"
-                    style="@style/style_bvnc_float_btn_item"
-                    android:text="@string/zoom" />-->
-            </LinearLayout>
-        </FrameLayout>
-    </io.codetail.widget.RevealLinearLayout>
-
-</FrameLayout>
+        <ImageView
+            android:layout_width="@dimen/dp_15"
+            android:layout_height="@dimen/dp_15"
+            android:layout_gravity="center"
+            android:src="@mipmap/menu" />
+    </FrameLayout>
+</merge>

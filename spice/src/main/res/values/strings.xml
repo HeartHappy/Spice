@@ -126,7 +126,7 @@
     <string name="error_rdp_connection_failed">RDP连接失败了！网络连接被中断或RDP服务器已停止／无效。或者将会话切换到另外用户了。</string>
     <string name="error_rdp_unable_to_connect">无法连接到RDP服务器！请确认RDP服务器设置正确，服务器已上电，RDP已有效以及服务器与该设备位于同一网络上。</string>
     <string name="error_security_type">服务器无法提供对应的安全类型。</string>
-    <string name="error_spice_unable_to_connect">无法连接或认证。请确认服务器地址、密码以及CA与主题。</string>
+    <string name="error_spice_unable_to_connect">无法连接或认证。请确认服务器地址和密码。</string>
     <string name="error_ssh_could_not_exec_command">没能执行远程命令。</string>
     <string name="error_ssh_could_not_send_sudo_pwd">没能发送sudo密码。</string>
     <string name="error_ssh_hostkey_changed">ERROR！服务器主机密钥已更改。如果有意这样做，请删除并重试连接。否则，这可能是中间人的攻击，不能继续。</string>

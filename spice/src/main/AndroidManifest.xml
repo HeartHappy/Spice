@@ -17,6 +17,7 @@
     <application>
         <activity
             android:name="com.vesystem.spice.ui.KRemoteCanvasActivity"
+            android:launchMode="singleTask"
             android:theme="@style/AppTheme" />
     </application>
 </manifest>

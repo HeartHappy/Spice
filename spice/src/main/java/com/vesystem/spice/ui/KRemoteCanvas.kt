@@ -39,25 +39,21 @@ import java.lang.ref.WeakReference
  */
 class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageView(context, attrs),
     KViewable, IMouseOperation {
-    private var shiftY: Int = 0
-    private var shiftX: Int = 0
-    var spiceCommunicator: WeakReference<SpiceCommunicator>? = null//远程连接
+    var spiceCommunicator: SpiceCommunicator? = null//远程连接
     private var drawable: WeakReference<Drawable>? = null//渲染bitmap
     var scope: WeakReference<Job>? = null
     private var canvasBitmap: Bitmap? = null
     var myHandler: Handler? = null
     var ktvMouse: KTVMouse? = null
+    var isSetCanvasMatrix = false
 
     init {
         setBackgroundColor(Color.BLACK)
         myHandler = Handler(Handler.Callback {
             when (it.what) {
-                SPICE_CONNECT_TIMEOUT -> EventBus.getDefault()
-                    .post(
-                        KMessageEvent(
-                            SPICE_CONNECT_TIMEOUT
-                        )
-                    )
+                SPICE_CONNECT_TIMEOUT -> {
+                    EventBus.getDefault().post(KMessageEvent(SPICE_CONNECT_TIMEOUT))
+                }
                 SPICE_CONNECT_FAILURE -> {
                     EventBus.getDefault().post(KMessageEvent(SPICE_CONNECT_FAILURE))
                 }
@@ -69,27 +65,25 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
 
-        spiceCommunicator = WeakReference(
-            SpiceCommunicator(
-                context.applicationContext
-            )
-        )
+        spiceCommunicator = SpiceCommunicator(context.applicationContext)
+
 
         /**
          * 原生方法得接口回调
          */
-        spiceCommunicator?.get()?.setSpiceConnect(object :
+        spiceCommunicator?.setSpiceConnect(object :
             KSpiceConnect {
             override fun onUpdateBitmapWH(width: Int, height: Int) {
 //                Log.i(TAG, "onUpdateBitmapWH: $width,$height")
-                computeShiftFromFullToView(width, height)
                 reallocateDrawable(width, height)
-                spiceRequestResolution(width, height)
+                if (!isSetCanvasMatrix) {
+                    spiceRequestResolution(width, height)
+                }
             }
 
             override fun onUpdateBitmap(x: Int, y: Int, width: Int, height: Int) {
 //                Log.i(TAG, "onUpdateBitmap: x:$x,Y:$y,W:$width,H:$height")
-                reDraw(x, y, width, height)
+                postInvalidate()
             }
 
             override fun onMouseUpdate(x: Int, y: Int) {
@@ -103,7 +97,7 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             }
 
             override fun onConnectSucceed() {
-                Log.i(TAG, "onConnectSucceed: 连接成功")
+//                Log.i(TAG, "onConnectSucceed: 连接成功")
                 myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
                 myHandler?.removeMessages(SPICE_CONNECT_FAILURE)
                 EventBus.getDefault().post(
@@ -117,7 +111,7 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             }
 
             override fun onConnectFail() {
-                Log.i(TAG, "onConnectFail: 连接失败")
+//                Log.i(TAG, "onConnectFail: 连接失败")
                 myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
                 myHandler?.sendEmptyMessageDelayed(SPICE_CONNECT_FAILURE, 3 * 1000)
             }
@@ -138,7 +132,7 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
     private fun enabledConnectSpice() {
         //IO 线程里拉取数据
         Log.i(TAG, "启动Spice连接线程: ")
-        spiceCommunicator?.get()?.connectSpice(
+        spiceCommunicator?.connectSpice(
             Spice.ip,
             Spice.port,
             Spice.tPort,
@@ -153,9 +147,18 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
     /**
      * 更新分辨率，如果当前给我得分辨率不是当前屏幕分辨率则，继续请求更新
      */
-    private fun spiceRequestResolution(width: Int, height: Int) {
+    fun spiceRequestResolution(width: Int, height: Int) {
         if (width != this.width || height != this.height) {
-            spiceCommunicator?.get()?.SpiceRequestResolution(this.width, this.height)
+            spiceCommunicator?.SpiceRequestResolution(this.width, this.height)
+        }
+    }
+
+    fun updateSpiceResolvingPower(width: Int, height: Int) {
+        spiceCommunicator?.isClickDisconnect?.let {
+            if(it){
+                isSetCanvasMatrix = true
+                spiceCommunicator?.SpiceRequestResolution(width, height)
+            }
         }
     }
 
@@ -185,34 +188,8 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
             )
         )
         //TODO 初始化鼠标
-        spiceCommunicator?.get()?.setBitmap(canvasBitmap)
+        spiceCommunicator?.setBitmap(canvasBitmap)
         post(drawableRunnable)
-    }
-
-
-    fun computeShiftFromFullToView(framebufferWidth: Int, framebufferHeight: Int) {
-        shiftX = (framebufferWidth - width) / 2
-        shiftY = (framebufferHeight - height) / 2
-    }
-
-    override fun reDraw(x: Int, y: Int, width: Int, height: Int) {
-//        Log.i(TAG, "reDraw: X:$x,Y:$y,W:$width,H:$height")
-
-        val scale = 1
-        val shiftedX = (x - shiftX).toFloat()
-        val shiftedY = (y - shiftY).toFloat()
-        val left = ((shiftedX - 1f) * scale).toInt()
-        val top = ((shiftedY - 1f) * scale).toInt()
-        val right = ((shiftedX + width + 1f) * scale).toInt()
-        val bottom = ((shiftedY + height + 1f) * scale).toInt()
-        /* Log.i(
-             TAG,
-             "reDraw: L:$left,T:$top,R:$right,B:$bottom,S:$scale"
-         )*/
-        postInvalidate(
-            left, top,
-            right, bottom
-        )
     }
 
 
@@ -243,7 +220,6 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
      */
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        Log.i(TAG, "onTouchEvent: ${event.action}")
         ktvMouse?.onTouchEvent(event)
         return true
     }
@@ -269,42 +245,40 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
         mouseType: Int,
         isMove: Boolean
     ) {
-        spiceCommunicator?.get()
-            ?.writePointerEvent(
-                x,
-                y,
-                metaState,
-                mouseType and POINTER_DOWN_MASK.inv(),
-                isMove
-            )
-        spiceCommunicator?.get()
-            ?.writePointerEvent(
-                x,
-                y,
-                metaState,
-                mouseType or POINTER_DOWN_MASK,
-                isMove
-            )
+        spiceCommunicator?.writePointerEvent(
+            x,
+            y,
+            metaState,
+            mouseType and POINTER_DOWN_MASK.inv(),
+            isMove
+        )
+        spiceCommunicator?.writePointerEvent(
+            x,
+            y,
+            metaState,
+            mouseType or POINTER_DOWN_MASK,
+            isMove
+        )
     }
 
     override fun mouseDownMove(x: Int, y: Int, metaState: Int, mouseType: Int, isMove: Boolean) {
-        spiceCommunicator?.get()
-            ?.writePointerEvent(
-                x,
-                y,
-                metaState,
-                mouseType or POINTER_DOWN_MASK,
-                isMove
-            )
+        spiceCommunicator?.writePointerEvent(
+            x,
+            y,
+            metaState,
+            mouseType or POINTER_DOWN_MASK,
+            isMove
+        )
     }
 
 
     override fun mouseMove(x: Int, y: Int, metaState: Int, mouseType: Int, isMove: Boolean) {
-        spiceCommunicator?.get()?.writePointerEvent(
+        spiceCommunicator?.writePointerEvent(
             x, y, metaState,
             mouseType, isMove
         )
-        reDraw(x, y, width, height)
+        postInvalidate()
+//        reDraw(x, y, width, height)
     }
 
 
@@ -318,16 +292,14 @@ class KRemoteCanvas(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
         mouseType: Int,
         isMove: Boolean
     ) {
-        spiceCommunicator?.get()
-            ?.writePointerEvent(
-                x,
-                y,
-                metaState,
-                mouseType and POINTER_DOWN_MASK.inv(),
-                isMove
-            )
-        spiceCommunicator?.get()
-            ?.writePointerEvent(x, y, metaState, 0, isMove)
+        spiceCommunicator?.writePointerEvent(
+            x,
+            y,
+            metaState,
+            mouseType and POINTER_DOWN_MASK.inv(),
+            isMove
+        )
+        spiceCommunicator?.writePointerEvent(x, y, metaState, 0, isMove)
     }
 
 

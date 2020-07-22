@@ -6,7 +6,6 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Context
-import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
 import android.view.InputDevice
@@ -15,7 +14,6 @@ import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
-import com.gordonwong.materialsheetfab.MaterialSheetFab
 import com.vesystem.spice.R
 import com.vesystem.spice.keyboard.KeyBoard
 import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_CENTER_ENTER
@@ -24,12 +22,14 @@ import com.vesystem.spice.keyboard.KeyBoard.Companion.SCANCODE_SHIFT_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_META_MASK
 import com.vesystem.spice.model.KMessageEvent
-import com.vesystem.spice.ui.widget.Fab
+import com.vesystem.spice.ui.interfaces.IPopMenuItemListener
+import com.vesystem.spice.ui.interfaces.ISoftKeyboardListener
+import com.vesystem.spice.ui.interfaces.ISoftKeyboardListener.OnSoftKeyBoardChangeListener
+import com.vesystem.spice.ui.pop.KPopMenuList
 import kotlinx.android.synthetic.main.activity_remote_canvas.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import kotlin.properties.Delegates
 
 /**
  * Created Date 2020/7/6.
@@ -41,10 +41,10 @@ import kotlin.properties.Delegates
  * 3、键盘的交互
  */
 class KRemoteCanvasActivity : Activity(), View.OnClickListener {
-    private var materialSheetFab by Delegates.notNull<MaterialSheetFab<Fab>>()
-    private var keyBoard: KeyBoard? = null
-    private var dialog: ProgressDialog? = null
-    private var alertDialog: AlertDialog? = null
+    private var keyBoard: KeyBoard? = null //自定义物理键盘
+    private var dialog: ProgressDialog? = null //连接时的加载dialog
+    private var alertDialog: AlertDialog? = null //连接信息提示
+    private var popMenuList: KPopMenuList? = null//菜单弹出列表Pop
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -55,8 +55,6 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         }
         initView()
 
-        initSoftKeyBoard()
-
         dialog = ProgressDialog.show(
             this,
             getString(R.string.info_progress_dialog_connecting),
@@ -64,103 +62,71 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             true,
             true
         )
-        dialog?.setCanceledOnTouchOutside(false)
+        dialog?.setCancelable(false)
     }
 
 
     @Suppress("DEPRECATION")
     private fun initView() {
+        flRemoteMenu.setOnClickListener(this)
+        ISoftKeyboardListener.setSoftKeyBoardListener(this, object : OnSoftKeyBoardChangeListener {
+            override fun keyBoardShow(height: Int) {
+                Log.i(TAG, "keyBoardShow: $height")
+                canvas.updateSpiceResolvingPower(canvas.width, canvas.height - height)
+            }
 
-        // Initialize and define actions for on-screen keys.
-        val overlay = findViewById<View>(R.id.overlay)
-        val sheetColor = resources.getColor(R.color.col_white)
-        val fabColor = resources.getColor(R.color.col_white)
-        materialSheetFab = MaterialSheetFab(
-            floatingActionButton, fab_sheet, overlay,
-            sheetColor, fabColor
+            override fun keyBoardHide(height: Int) {
+                Log.i(TAG, "keyBoardHide: $height")
+                canvas.updateSpiceResolvingPower(canvas.width, canvas.height)
+            }
+        }
         )
-        findViewById<View>(R.id.session_sys_keyboard).setOnClickListener(this)
-        findViewById<View>(R.id.session_disconnect).setOnClickListener(this)
     }
 
 
+    /**
+     * 显示系统软键盘
+     */
     private fun showKeyboard() {
         val inputMgr: InputMethodManager =
             getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        //解决自定义键盘显示时太快，导致的移动问题
-        inputMgr.toggleSoftInputFromWindow(
-            canvas.windowToken,
-            InputMethodManager.SHOW_FORCED,
-            InputMethodManager.SHOW_FORCED
-        )
-        canvas.postDelayed({
-            if (!isSoftShowing()) {
-                Toast.makeText(
-                    canvas.context,
-                    getString(R.string.the_system_has_no_keyboard),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }, 500)
-    }
-
-
-    /**
-     * 判断软键盘是否弹出
-     *
-     * @return
-     */
-    private fun isSoftShowing(): Boolean {
-        //获取当前屏幕内容的高度
-        val screenHeight = window.decorView.height
-        //获取View可见区域的bottom
-        val rect = Rect()
-        window.decorView.getWindowVisibleDisplayFrame(rect)
-        return screenHeight - rect.bottom > 200
-    }
-
-    /**
-     * 获取软键盘高度
-     *
-     * @return
-     */
-    /*@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    private fun getSoftButtonsBarHeight(): Int {
-        val metrics = DisplayMetrics()
-        //这个方法获取可能不是真实屏幕的高度
-        windowManager.defaultDisplay.getMetrics(metrics)
-        val usableHeight = metrics.heightPixels
-        //获取当前屏幕的真实高度
-        windowManager.defaultDisplay.getRealMetrics(metrics)
-        val realHeight = metrics.heightPixels
-        return if (realHeight > usableHeight) {
-            realHeight - usableHeight
-        } else {
-            0
+        val showSoftInput = inputMgr.showSoftInput(window.decorView, 0)
+        if (!showSoftInput) {
+            Toast.makeText(
+                canvas.context,
+                getString(R.string.the_system_has_no_keyboard),
+                Toast.LENGTH_SHORT
+            ).show()
         }
-    }*/
+    }
 
+
+    /**
+     * Spice连接时的相关事件处理
+     */
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun eventBus(messageEvent: KMessageEvent) {
 //        Log.i("MessageEvent", "eventBus: ${messageEvent.requestCode}")
         dialog?.dismiss()
         when (messageEvent.requestCode) {
-            KMessageEvent.SPICE_CONNECT_SUCCESS -> Log.i(
-                "MessageEvent",
-                "eventBus: 连接成功"
-            )
+            KMessageEvent.SPICE_CONNECT_SUCCESS -> {
+//                Log.i("MessageEvent", "eventBus: 连接成功")
+                //初始化键盘拦截器
+                keyBoard = KeyBoard(resources)
+            }
             KMessageEvent.SPICE_CONNECT_TIMEOUT -> {
 //                Log.i("MessageEvent", "eventBus: 连接超时")
                 dialogHint(getString(R.string.error_connect_timeout))
             }
             //失败原因：1、连接失败   2、连接超时  3、远程被断开
             KMessageEvent.SPICE_CONNECT_FAILURE -> {
-                val sc = canvas.spiceCommunicator?.get()
+                val sc = canvas.spiceCommunicator
                 sc?.isConnectSucceed?.let {
                     //如果时连接情况下，被断开，视为其他设备占用，导致断开连接
                     when {
                         //远程连接被断开
                         sc.isConnectSucceed -> {
+//                            Log.i(TAG, "eventBus: 连接被断开")
                             sc.disconnect()
                             dialogHint(getString(R.string.error_connection_interrupted))
                         }
@@ -181,6 +147,10 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         }
     }
 
+
+    /**
+     * Spice连接时的dialog提示
+     */
     private fun dialogHint(message: String) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle(getString(R.string.error))
@@ -198,25 +168,16 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         }
     }
 
-    override fun onClick(v: View?) {
-        v?.let {
-            if (it.id == R.id.session_sys_keyboard) {
-                materialSheetFab.hideSheet()
-                showKeyboard()
-            } else if (it.id == R.id.session_disconnect) {
-                close()
-                finish()
-            }
-        }
-    }
 
-    private fun initSoftKeyBoard() {
-        keyBoard = KeyBoard(resources)
-    }
-
-
+    /**
+     * 键盘的相关事件拦截处理
+     */
     private var tabSign: Boolean = false//解决，tab第一次按下时，只返回一次事件松开事件
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        keyBoard ?: let {
+            return false
+        }
+
         val isDown = event.action == KeyEvent.ACTION_DOWN
 
         //解决右键弹出菜单问题
@@ -304,16 +265,58 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     }
 
 
+    /**
+     * 发送键盘key指令
+     */
     private fun sendKey(code: Int, down: Boolean) {
-        canvas.spiceCommunicator?.get()?.sendSpiceKeyEvent(down, code)
+        canvas.spiceCommunicator?.sendSpiceKeyEvent(down, code)
     }
 
+
+    /**
+     * 菜单按钮的点击事件
+     */
+    override fun onClick(v: View?) {
+        v?.let { it ->
+            if (it.id == R.id.flRemoteMenu) {
+                showOrHide(v, 0f, View.GONE)
+                popMenuList ?: let {
+                    popMenuList = KPopMenuList(this, object : IPopMenuItemListener {
+                        override fun onClickSystemKeyboard() {
+                            showOrHide(v, 1f, View.VISIBLE)
+                            showKeyboard()
+                        }
+
+                        override fun onClickDisconnect() {
+                            showOrHide(v, 1f, View.VISIBLE)
+                            finish()
+                        }
+
+                        override fun onDismiss() {
+                            showOrHide(v, 1f, View.VISIBLE)
+                        }
+                    })
+                }
+                popMenuList?.let { pop ->
+                    if (!pop.isShowing) {
+                        pop.showAsDropDown(v, 0, 0)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showOrHide(v: View, value: Float, visibility: Int) {
+        v.animate().alpha(value).start()
+        v.visibility = visibility
+    }
 
     override fun onDestroy() {
         super.onDestroy()
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this)
         }
+        close()
         System.gc()
     }
 
@@ -322,7 +325,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
      * 断开连接，并取消协程
      */
     private fun close() {
-        val sc = canvas.spiceCommunicator?.get()
+        val sc = canvas.spiceCommunicator
         sc?.isConnectSucceed?.let {
             if (sc.isConnectSucceed) {
                 sc.isConnectSucceed = false
@@ -331,5 +334,9 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             }
         }
         canvas.scope?.get()?.cancel()
+    }
+
+    companion object {
+        private const val TAG = "KRemoteCanvasActivity"
     }
 }
