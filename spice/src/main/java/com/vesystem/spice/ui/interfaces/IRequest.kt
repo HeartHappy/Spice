@@ -6,6 +6,6 @@ package com.vesystem.spice.ui.interfaces
  * @author ChenRui
  * ClassDescription:
  */
-interface KRequest {
+interface IRequest {
     fun requestKeep()
 }

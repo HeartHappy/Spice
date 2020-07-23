@@ -84,10 +84,12 @@
         android:id="@+id/flRemoteMenu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="right"
+        android:layout_gravity="right|bottom"
         android:layout_margin="@dimen/dp_40"
+        android:backgroundTint="@color/col_remote_dis"
+        android:elevation="@dimen/dp_4"
         android:src="@mipmap/menu"
-        app:borderWidth="@dimen/dp_0"
         app:elevation="@dimen/dp_4"
+        app:rippleColor="@color/col_gray"
         tools:ignore="RtlHardcoded" />
 </merge>

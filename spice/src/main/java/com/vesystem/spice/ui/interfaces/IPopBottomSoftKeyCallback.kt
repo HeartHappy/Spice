@@ -8,7 +8,7 @@ import android.view.MotionEvent
  * @author ChenRui
  * ClassDescription：底部自定义软键盘触摸事件接口回调
  */
-interface KIPopBottomSoftKeyCallback {
+interface IPopBottomSoftKeyCallback {
     //自定义底部软键盘按下回调
     fun onTouchDown(event: MotionEvent, keyCode: Int)
 

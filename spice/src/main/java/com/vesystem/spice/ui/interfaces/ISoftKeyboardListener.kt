@@ -27,7 +27,7 @@ class ISoftKeyboardListener(activity: Activity) {
                 val r = Rect()
                 rootView!!.getWindowVisibleDisplayFrame(r)
                 val visibleHeight: Int = r.height()
-                println("" + visibleHeight)
+                println("ISoftKeyboardListener$visibleHeight")
                 if (rootViewVisibleHeight == 0) {
                     rootViewVisibleHeight = visibleHeight
                     return@OnGlobalLayoutListener

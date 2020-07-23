@@ -13,7 +13,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import com.vesystem.spice.R
-import com.vesystem.spice.ui.interfaces.KIPopBottomSoftKeyCallback
+import com.vesystem.spice.ui.interfaces.IPopBottomSoftKeyCallback
 
 /**
  * Created Date 2020-01-16.
@@ -23,10 +23,10 @@ import com.vesystem.spice.ui.interfaces.KIPopBottomSoftKeyCallback
  */
 class KPopBottomSoftKey(context: Context?, softKeyBoardHeight: Int) :
     PopupWindow(context), OnTouchListener {
-    private var mIPopBottomSoftKeyCallback: KIPopBottomSoftKeyCallback? =
+    private var mIPopBottomSoftKeyCallback: IPopBottomSoftKeyCallback? =
         null
 
-    fun setIPopBottomSoftKeyCallback(IPopBottomSoftKeyCallback: KIPopBottomSoftKeyCallback?) {
+    fun setIPopBottomSoftKeyCallback(IPopBottomSoftKeyCallback: IPopBottomSoftKeyCallback?) {
         mIPopBottomSoftKeyCallback = IPopBottomSoftKeyCallback
     }
 

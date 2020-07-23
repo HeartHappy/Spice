@@ -24,7 +24,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
-import com.vesystem.spice.interfaces.KSpiceConnect;
+import com.vesystem.spice.interfaces.ISpiceConnect;
 import com.vesystem.spice.model.KMessageEvent;
 
 import org.freedesktop.gstreamer.GStreamer;
@@ -175,9 +175,9 @@ public class SpiceCommunicator {
         this.bitmap = bitmap;
     }
 
-    private KSpiceConnect spiceConnect;
+    private ISpiceConnect spiceConnect;
 
-    public void setSpiceConnect(KSpiceConnect spiceConnect) {
+    public void setSpiceConnect(ISpiceConnect spiceConnect) {
         this.spiceConnect = spiceConnect;
     }
 

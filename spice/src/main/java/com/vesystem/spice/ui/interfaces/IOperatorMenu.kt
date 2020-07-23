@@ -8,7 +8,7 @@ import android.view.View
  * @author ChenRui
  * ClassDescription：
  */
-interface KIOperatorMenu {
+interface IOperatorMenu {
     //触屏点击
     fun touchClick(view: View)
 

@@ -18,6 +18,7 @@
         <activity
             android:name="com.vesystem.spice.ui.KRemoteCanvasActivity"
             android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"
             android:theme="@style/AppTheme" />
     </application>
 </manifest>

@@ -13,7 +13,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import com.vesystem.spice.R
 import com.vesystem.spice.keyboard.KeyBoard
 import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_CENTER_ENTER
@@ -22,6 +21,7 @@ import com.vesystem.spice.keyboard.KeyBoard.Companion.SCANCODE_SHIFT_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_META_MASK
 import com.vesystem.spice.model.KMessageEvent
+import com.vesystem.spice.model.KSpice
 import com.vesystem.spice.ui.interfaces.IPopMenuItemListener
 import com.vesystem.spice.ui.interfaces.ISoftKeyboardListener
 import com.vesystem.spice.ui.interfaces.ISoftKeyboardListener.OnSoftKeyBoardChangeListener
@@ -53,8 +53,32 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this)
         }
+
         initView()
 
+        createLoading()
+    }
+
+
+    @Suppress("DEPRECATION")
+    private fun initView() {
+        flRemoteMenu.setOnClickListener(this)
+        ISoftKeyboardListener.setSoftKeyBoardListener(this, object : OnSoftKeyBoardChangeListener {
+            override fun keyBoardShow(height: Int) {
+                Log.i(TAG, "keyBoardShow: $height")
+                flRemoteMenu.visibility = View.GONE
+                canvas.updateSpiceResolvingPower(canvas.width, canvas.height - height)
+            }
+
+            override fun keyBoardHide(height: Int) {
+                Log.i(TAG, "keyBoardHide: $height")
+                flRemoteMenu.visibility = View.VISIBLE
+                canvas.recoverySpiceResolvingPower()
+            }
+        })
+    }
+
+    private fun createLoading() {
         dialog = ProgressDialog.show(
             this,
             getString(R.string.info_progress_dialog_connecting),
@@ -66,38 +90,24 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     }
 
 
-    @Suppress("DEPRECATION")
-    private fun initView() {
-        flRemoteMenu.setOnClickListener(this)
-        ISoftKeyboardListener.setSoftKeyBoardListener(this, object : OnSoftKeyBoardChangeListener {
-            override fun keyBoardShow(height: Int) {
-                Log.i(TAG, "keyBoardShow: $height")
-                canvas.updateSpiceResolvingPower(canvas.width, canvas.height - height)
-            }
-
-            override fun keyBoardHide(height: Int) {
-                Log.i(TAG, "keyBoardHide: $height")
-                canvas.updateSpiceResolvingPower(canvas.width, canvas.height)
-            }
-        }
-        )
-    }
-
-
     /**
      * 显示系统软键盘
      */
     private fun showKeyboard() {
         val inputMgr: InputMethodManager =
             getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        val showSoftInput = inputMgr.showSoftInput(window.decorView, 0)
-        if (!showSoftInput) {
+        inputMgr.toggleSoftInputFromWindow(
+            window.decorView.windowToken,
+            InputMethodManager.SHOW_FORCED,
+            InputMethodManager.SHOW_FORCED
+        )
+        /*if (!showSoftInput) {
             Toast.makeText(
                 canvas.context,
                 getString(R.string.the_system_has_no_keyboard),
                 Toast.LENGTH_SHORT
             ).show()
-        }
+        }*/
     }
 
 
@@ -110,36 +120,20 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         dialog?.dismiss()
         when (messageEvent.requestCode) {
             KMessageEvent.SPICE_CONNECT_SUCCESS -> {
-//                Log.i("MessageEvent", "eventBus: 连接成功")
                 //初始化键盘拦截器
                 keyBoard = KeyBoard(resources)
             }
             KMessageEvent.SPICE_CONNECT_TIMEOUT -> {
-//                Log.i("MessageEvent", "eventBus: 连接超时")
-                dialogHint(getString(R.string.error_connect_timeout))
+                messageEvent.msg?.let {
+                    canvas.close()
+                    dialogHint(it)
+                }
             }
             //失败原因：1、连接失败   2、连接超时  3、远程被断开
             KMessageEvent.SPICE_CONNECT_FAILURE -> {
-                val sc = canvas.spiceCommunicator
-                sc?.isConnectSucceed?.let {
-                    //如果时连接情况下，被断开，视为其他设备占用，导致断开连接
-                    when {
-                        //远程连接被断开
-                        sc.isConnectSucceed -> {
-//                            Log.i(TAG, "eventBus: 连接被断开")
-                            sc.disconnect()
-                            dialogHint(getString(R.string.error_connection_interrupted))
-                        }
-                        //点击断开连接，返回得失败
-                        sc.isClickDisconnect -> {
-//                            Log.i("MessageEvent", "eventBus:点击导致得断开连接，返回得失败 ")
-                        }
-                        //连接时，返回得连接失败,  注意：需要区分两次连接导致得连接失败，还是配置参数导致得失败
-                        else -> {
-//                            Log.i("MessageEvent", "eventBus: 连接失败,无法连接或认证ca主题")
-                            dialogHint(getString(R.string.error_spice_unable_to_connect))
-                        }
-                    }
+                messageEvent.msg?.let {
+                    canvas.close()
+                    dialogHint(it)
                 }
             }
 
@@ -170,7 +164,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
 
 
     /**
-     * 键盘的相关事件拦截处理
+     * 键盘的相关事件处理
      */
     private var tabSign: Boolean = false//解决，tab第一次按下时，只返回一次事件松开事件
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -269,7 +263,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
      * 发送键盘key指令
      */
     private fun sendKey(code: Int, down: Boolean) {
-        canvas.spiceCommunicator?.sendSpiceKeyEvent(down, code)
+        canvas.sendKey(code, down)
     }
 
 
@@ -316,24 +310,9 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this)
         }
-        close()
+        Log.i(TAG, "onDestroy: 销毁并断开连接")
+        canvas.close()
         System.gc()
-    }
-
-
-    /**
-     * 断开连接，并取消协程
-     */
-    private fun close() {
-        val sc = canvas.spiceCommunicator
-        sc?.isConnectSucceed?.let {
-            if (sc.isConnectSucceed) {
-                sc.isConnectSucceed = false
-                sc.isClickDisconnect = true
-                sc.disconnect()
-            }
-        }
-        canvas.scope?.get()?.cancel()
     }
 
     companion object {

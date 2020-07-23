@@ -8,7 +8,7 @@ import android.view.View
 import android.widget.PopupWindow
 import android.widget.TextView
 import com.vesystem.spice.R
-import com.vesystem.spice.ui.interfaces.KIOperatorMenu
+import com.vesystem.spice.ui.interfaces.IOperatorMenu
 
 /**
  * Created Date 2020-01-13.
@@ -18,8 +18,8 @@ import com.vesystem.spice.ui.interfaces.KIOperatorMenu
  */
 class KPopOperatorMenu(context: Context) : PopupWindow(context),
     View.OnClickListener {
-    private var mIOperatorMenu: KIOperatorMenu? = null
-    fun setIOperatorMenu(IOperatorMenu: KIOperatorMenu?) {
+    private var mIOperatorMenu: IOperatorMenu? = null
+    fun setIOperatorMenu(IOperatorMenu: IOperatorMenu?) {
         mIOperatorMenu = IOperatorMenu
     }
 

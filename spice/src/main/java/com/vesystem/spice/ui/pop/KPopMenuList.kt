@@ -1,5 +1,6 @@
 package com.vesystem.spice.ui.pop
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.widget.PopupWindow
@@ -12,6 +13,7 @@ import com.vesystem.spice.ui.interfaces.IPopMenuItemListener
  * @author ChenRui
  * ClassDescription:
  */
+@SuppressLint("InflateParams")
 class KPopMenuList(val context: Context, private val listener: IPopMenuItemListener) :
     PopupWindow() {
     init {
@@ -20,7 +22,7 @@ class KPopMenuList(val context: Context, private val listener: IPopMenuItemListe
         contentView = view
         width = context.resources.getDimensionPixelSize(R.dimen.dp_60)
         height = context.resources.getDimensionPixelSize(R.dimen.dp_60)
-        isTouchable=true
+        isOutsideTouchable=true
         contentView.findViewById<TextView>(R.id.session_sys_keyboard).setOnClickListener {
             dismiss()
             listener.onClickSystemKeyboard()

@@ -5,7 +5,7 @@ package com.vesystem.spice.interfaces
  * @author ChenRui
  * ClassDescription:Spice连接相关接口
  */
-interface KSpiceConnect {
+interface ISpiceConnect {
     fun onUpdateBitmapWH(width: Int, height: Int)
 
     fun onUpdateBitmap(x: Int, y: Int, width: Int, height: Int)
