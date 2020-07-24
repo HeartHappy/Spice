@@ -28,7 +28,8 @@ class KSpice {
         internal var resolutionWidth = 0//分辨率宽
         internal var resolutionheight = 0//分辨率高
         internal var spiceListener: ISpiceListener? = null
-        internal var sysRunEnv=false
+        internal var sysRunEnv = false
+        internal var mouseMode = MouseMode.MODE_CLICK//默认操作模式，点击
 
         fun connect(ip: String, port: String, password: String): Companion {
             this.ip = ip
@@ -53,14 +54,14 @@ class KSpice {
             return this
         }
 
+        fun mouseMode(mode: MouseMode): Companion {
+            this.mouseMode = mode
+            return this
+        }
+
         fun start(context: Context) {
             cf = context.filesDir.path + File.separator + "ca0.pem"
-            if (resolutionWidth == 0 || resolutionheight == 0) {
-                val displayMetrics = context.resources.displayMetrics
-                resolutionWidth = displayMetrics.widthPixels
-                resolutionheight = displayMetrics.heightPixels
-            }
-            sysRunEnv=SystemRunEnvUtil.comprehensiveCheckSystemEnv(context)
+            sysRunEnv = SystemRunEnvUtil.comprehensiveCheckSystemEnv(context)
             Log.i("KSpice", "start: 系统运行环境：$sysRunEnv")
             val intent = Intent(context, KRemoteCanvasActivity::class.java)
             intent.flags = FLAG_ACTIVITY_NEW_TASK
@@ -71,6 +72,11 @@ class KSpice {
         interface ISpiceListener {
             fun onSucceed()
             fun onFail(message: String)
+        }
+
+        enum class MouseMode {
+            MODE_CLICK,
+            MODE_TOUCH
         }
     }
 }

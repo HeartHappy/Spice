@@ -20,8 +20,8 @@ class KPopMenuList(val context: Context, private val listener: IPopMenuItemListe
         val view =
             LayoutInflater.from(context).inflate(R.layout.pop_remote_menu_list, null, false)
         contentView = view
-        width = context.resources.getDimensionPixelSize(R.dimen.dp_60)
-        height = context.resources.getDimensionPixelSize(R.dimen.dp_60)
+        width = context.resources.getDimensionPixelSize(R.dimen.dp_80)
+        height = context.resources.getDimensionPixelSize(R.dimen.dp_80)
         isOutsideTouchable=true
         contentView.findViewById<TextView>(R.id.session_sys_keyboard).setOnClickListener {
             dismiss()

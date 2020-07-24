@@ -129,6 +129,9 @@ public class SpiceCommunicator {
         Log.i(TAG, "sendMouseEvent: " + x + "x" + y + "," + "metaState: " +
                 metaState + ", pointerMask: " + pointerMask + ",rel:" + rel);
         SpiceButtonEvent(x, y, metaState, pointerMask, rel);
+        if (myself.get().spiceConnect != null) {
+            myself.get().spiceConnect.onMouseUpdate(x, y);
+        }
     }
 
 

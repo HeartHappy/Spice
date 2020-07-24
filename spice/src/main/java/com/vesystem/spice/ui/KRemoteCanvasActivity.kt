@@ -8,11 +8,9 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.InputDevice
-import android.view.KeyEvent
-import android.view.View
-import android.view.WindowManager
+import android.view.*
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import com.vesystem.spice.R
 import com.vesystem.spice.keyboard.KeyBoard
 import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_CENTER_ENTER
@@ -21,7 +19,6 @@ import com.vesystem.spice.keyboard.KeyBoard.Companion.SCANCODE_SHIFT_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_META_MASK
 import com.vesystem.spice.model.KMessageEvent
-import com.vesystem.spice.model.KSpice
 import com.vesystem.spice.ui.interfaces.IPopMenuItemListener
 import com.vesystem.spice.ui.interfaces.ISoftKeyboardListener
 import com.vesystem.spice.ui.interfaces.ISoftKeyboardListener.OnSoftKeyBoardChangeListener
@@ -55,7 +52,6 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         }
 
         initView()
-
         createLoading()
     }
 
@@ -96,18 +92,14 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     private fun showKeyboard() {
         val inputMgr: InputMethodManager =
             getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMgr.toggleSoftInputFromWindow(
-            window.decorView.windowToken,
-            InputMethodManager.SHOW_FORCED,
-            InputMethodManager.SHOW_FORCED
-        )
-        /*if (!showSoftInput) {
+        val showSoftInput = inputMgr.showSoftInput(window.decorView, 0)
+        if (!showSoftInput) {
             Toast.makeText(
                 canvas.context,
                 getString(R.string.the_system_has_no_keyboard),
                 Toast.LENGTH_SHORT
             ).show()
-        }*/
+        }
     }
 
 
@@ -264,6 +256,11 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
      */
     private fun sendKey(code: Int, down: Boolean) {
         canvas.sendKey(code, down)
+    }
+
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        Log.i(TAG, "onGenericMotionEvent: ${event.actionMasked}")
+        return super.onGenericMotionEvent(event)
     }
 
 

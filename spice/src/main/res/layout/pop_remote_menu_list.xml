@@ -2,10 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/llRemoteMenuList"
-    android:layout_width="@dimen/dp_60"
-    android:layout_height="@dimen/dp_60"
-    android:layout_gravity="right|bottom"
-    android:layout_margin="@dimen/dp_40"
+    android:layout_width="@dimen/dp_80"
+    android:layout_height="@dimen/dp_80"
     android:background="@drawable/bg_menu_radius"
     android:orientation="vertical"
     tools:ignore="RtlHardcoded,UselessParent">
@@ -21,13 +19,13 @@
         android:id="@+id/session_sys_keyboard"
         style="@style/style_bvnc_float_btn_item"
         android:text="@string/sys_key"
-        android:textSize="@dimen/sp_10" />
+        android:textSize="@dimen/sp_12" />
 
     <TextView
         android:id="@+id/session_disconnect"
         style="@style/style_bvnc_float_btn_item"
         android:text="@string/disconnect"
-        android:textSize="@dimen/sp_10" />
+        android:textSize="@dimen/sp_12" />
 
     <!-- <TextView
          android:id="@+id/tvZoom"

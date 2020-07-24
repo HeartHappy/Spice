@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
             KSpice.connect("192.168.30.61", "5901", "bgh3q1klcp")
                 .sound(true)
 //                .resolution(720,1080)
+                .mouseMode(KSpice.Companion.MouseMode.MODE_TOUCH)
                 .listener(object : KSpice.Companion.ISpiceListener {
                     override fun onSucceed() {
                         Log.i("MainActivity", "onSucceed: 连接成功")
