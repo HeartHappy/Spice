@@ -19,6 +19,7 @@ import com.vesystem.spice.keyboard.KeyBoard.Companion.SCANCODE_SHIFT_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_META_MASK
 import com.vesystem.spice.model.KMessageEvent
+import com.vesystem.spice.model.KSpice
 import com.vesystem.spice.ui.interfaces.IPopMenuItemListener
 import com.vesystem.spice.ui.interfaces.ISoftKeyboardListener
 import com.vesystem.spice.ui.interfaces.ISoftKeyboardListener.OnSoftKeyBoardChangeListener
@@ -72,6 +73,13 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                 canvas.recoverySpiceResolvingPower()
             }
         })
+        if (KSpice.sysRunEnv) {
+            zoomControls.setOnZoomInClickListener { canvas.canvasZoomIn() }
+            zoomControls.setOnZoomOutClickListener { canvas.canvasZoomOut() }
+        } else {
+            zoomControls.hide()
+        }
+
     }
 
     private fun createLoading() {

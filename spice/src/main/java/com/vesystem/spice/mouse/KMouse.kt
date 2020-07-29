@@ -1,6 +1,8 @@
 package com.vesystem.spice.mouse
 
+import android.app.Service
 import android.content.Context
+import android.os.Vibrator
 import android.view.MotionEvent
 
 /**
@@ -9,11 +11,21 @@ import android.view.MotionEvent
  * ClassDescription:
  */
 abstract class KMouse(val context: Context, val mouseOption: IMouseOperation) {
+    protected var vibrator: Vibrator? = null
+    protected var isTranslation: Boolean = false//是否平移
+    protected var pressedX: Int = 0 //首次按下的点x坐标
+    protected var pressedY: Int = 0//首次按下的点y坐标
+    protected var isDoubleDown = false//判断双指按下和双指松开
+    init {
+        vibrator = context.getSystemService(Service.VIBRATOR_SERVICE) as Vibrator
+    }
+
     var mouseX: Int = 0
         //鼠标的绝对X坐标
-        get() = if (field <= 0) 0 else if (field >= context.resources.displayMetrics.widthPixels) context.resources.displayMetrics.widthPixels-1 else field
-    var mouseY: Int = 0//鼠标的绝对Y坐标
-        get() = if (field <= 0) 0 else if (field >= context.resources.displayMetrics.heightPixels) context.resources.displayMetrics.heightPixels-1 else field
+        get() = if (field <= 0) 0 else if (field >= context.resources.displayMetrics.widthPixels) context.resources.displayMetrics.widthPixels - 1 else field
+    var mouseY: Int = 0
+        //鼠标的绝对Y坐标
+        get() = if (field <= 0) 0 else if (field >= context.resources.displayMetrics.heightPixels) context.resources.displayMetrics.heightPixels - 1 else field
 
 
     fun downMouseRightButton() {
@@ -21,6 +33,14 @@ abstract class KMouse(val context: Context, val mouseOption: IMouseOperation) {
     }
 
     fun upMouseRightButton() {
+        mouseOption.releaseMouseEvent(mouseX, mouseY, 0, SPICE_MOUSE_BUTTON_RIGHT, false)
+    }
+
+    fun downMouseRightButton(mouseX: Int, mouseY: Int) {
+        mouseOption.handlerMouseEvent(mouseX, mouseY, 0, SPICE_MOUSE_BUTTON_RIGHT, false)
+    }
+
+    fun upMouseRightButton(mouseX: Int, mouseY: Int) {
         mouseOption.releaseMouseEvent(mouseX, mouseY, 0, SPICE_MOUSE_BUTTON_RIGHT, false)
     }
 
