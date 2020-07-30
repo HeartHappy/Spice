@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    android:background="@color/color_8EA5CB"
     tools:context="com.vesystem.test.MainActivity"
     tools:ignore="ContentDescription">
 
@@ -14,29 +13,22 @@
         android:id="@+id/btnConnect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true"
         android:layout_marginBottom="@dimen/dp_40"
         android:layout_gravity="center"
         android:text="远程连接->点击操作" />
-
     <Button
+        android:id="@+id/btnCancel"
+        android:text="取消协程"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <!--<Button
         android:id="@+id/btnConnectByTouch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:text="远程连接->触摸操作" />
-    <com.vesystem.test.ZoomImageView
-        android:id="@+id/ziv"
-        android:layout_width="match_parent"
-        android:scaleType="centerCrop"
-        android:layout_height="match_parent" />
-
-    <ZoomControls
-        android:id="@+id/zc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom" />
+        android:text="远程连接->触摸操作" />-->
 </RelativeLayout>

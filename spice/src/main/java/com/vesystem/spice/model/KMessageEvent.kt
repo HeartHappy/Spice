@@ -9,14 +9,18 @@ package com.vesystem.spice.model
 class KMessageEvent {
     var requestCode //request code
             = 0
-        private set
     var `object`: Any? = null
-        private set
     var msg: String? = null
-        private set
     var position = 0
     var isSign = false
 
+    var x = 0
+    var y = 0
+    var width = 0
+    var height = 0
+    var relative=false
+
+    constructor()
     constructor(requestCode: Int) {
         this.requestCode = requestCode
     }
@@ -49,11 +53,28 @@ class KMessageEvent {
         isSign = sign
     }
 
+    fun setXYAndWH(x: Int, y: Int, w: Int, h: Int) {
+        this.x = x
+        this.y = y
+        this.width = w
+        this.height = h
+    }
+
+    fun setWH(w: Int, h: Int) {
+        this.width = w
+        this.height = h
+    }
+
+    fun setXY(x:Int,y:Int){
+        this.x = x
+        this.y = y
+    }
     companion object {
         const val SPICE_CONNECT_SUCCESS = 4
         const val SPICE_CONNECT_FAILURE = 5
         const val SPICE_CONNECT_TIMEOUT = 6 //连接超时
-        const val SPICE_GET_W_H = 10 //获取到了bitmap宽高
+        const val SPICE_CONNECT_FAILURE_NOTICE = 7 //连接失败通知
+        const val SPICE_BITMAP_W_H = 10 //获取到了bitmap宽高
         const val SPICE_BITMAP_UPDATE = 11 //bitmap更新
         const val SPICE_MOUSE_UPDATE = 12 //鼠标更新
         const val SPICE_MOUSE_MODE_UPDATE = 13 //鼠标模式更新

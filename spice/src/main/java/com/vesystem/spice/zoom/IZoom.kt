@@ -6,7 +6,6 @@ package com.vesystem.spice.zoom
  * ClassDescription:
  */
 interface IZoom {
-    fun zoom(scale: Float)
     //平移
     fun translation(dx: Int, dy: Int)
     //平移之前校验

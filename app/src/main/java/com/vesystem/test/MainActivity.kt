@@ -3,35 +3,32 @@ package com.vesystem.test
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.vesystem.spice.model.KSpice
-import com.vesystem.spice.zoom.GestureViewBinder
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.properties.Delegates
 
 class MainActivity : AppCompatActivity() {
-
+    var launch :Job by Delegates.notNull()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         imm()
         setContentView(R.layout.activity_main)
 
-        zc.setOnZoomInClickListener {
-            ziv.canvasZoomIn()
-        }
-        zc.setOnZoomOutClickListener {
-            ziv.canvasZoomOut()
-        }
-        val bind = GestureViewBinder.bind(this, rl, ziv)
-        bind.isFullGroup=true
         connectDesktop()
     }
 
     private fun connectDesktop() {
         btnConnect.setOnClickListener {
-            KSpice.connect("192.168.30.62", "5903", "lsmyc3qnx4")
+            KSpice.connect("192.168.30.62", "5903", "psfdiwgrcn")
                 .sound(true)
 //                .resolution(720,1080)
                 .mouseMode(KSpice.Companion.MouseMode.MODE_CLICK)
@@ -45,26 +42,25 @@ class MainActivity : AppCompatActivity() {
                     }
                 })
                 .start(this.applicationContext)
-            //            startActivity(Intent(this, RemoteCanvasActivity::class.java))
         }
 
-        btnConnectByTouch.setOnClickListener {
-            KSpice.connect("192.168.30.62", "5903", "lsmyc3qnx4")
-                .sound(true)
-//                .resolution(720,1080)
-                .mouseMode(KSpice.Companion.MouseMode.MODE_TOUCH)
-                .listener(object : KSpice.Companion.ISpiceListener {
-                    override fun onSucceed() {
-                        Log.i("MainActivity", "onSucceed: 连接成功")
-                    }
+        /* btnConnectByTouch.setOnClickListener {
+             KSpice.connect("192.168.30.62", "5903", "rhkvqgn35s")
+                 .sound(true)
+ //                .resolution(720,1080)
+                 .mouseMode(KSpice.Companion.MouseMode.MODE_TOUCH)
+                 .listener(object : KSpice.Companion.ISpiceListener {
+                     override fun onSucceed() {
+                         Log.i("MainActivity", "onSucceed: 连接成功")
+                     }
 
-                    override fun onFail(message: String) {
-                        Log.i("MainActivity", "onFail: $message")
-                    }
-                })
-                .start(this.applicationContext)
+                     override fun onFail(message: String) {
+                         Log.i("MainActivity", "onFail: $message")
+                     }
+                 })
+                 .start(this.applicationContext)
 
-        }
+         }*/
     }
 
 
@@ -80,9 +76,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-   /* override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        Log.i("TAG", "dispatchTouchEvent: ${ev.actionMasked}")
-        return true
-    }*/
+    /* override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+         Log.i("TAG", "dispatchTouchEvent: ${ev.actionMasked}")
+         return true
+     }*/
 
 }

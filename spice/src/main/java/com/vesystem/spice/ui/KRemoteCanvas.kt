@@ -31,6 +31,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import java.lang.ref.WeakReference
+import java.util.concurrent.CancellationException
 
 /**
  * Created Date 2020/7/6.
@@ -44,31 +45,30 @@ import java.lang.ref.WeakReference
  * 5、界面销毁断开连接、主动断开连接
  */
 class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView(context, attrs),
-    IZoom,
-    IViewable, IMouseOperation {
+    IZoom, IViewable, IMouseOperation, ISpiceConnect {
     private var spiceCommunicator: SpiceCommunicator? = null//远程连接
     private var drawable: WeakReference<Drawable>? = null//渲染bitmap
     private var scope: WeakReference<Job>? = null
     private var canvasBitmap: Bitmap? = null
     private var cursorBitmap: Bitmap? = null
-    var myHandler: Handler? = null
-    var ktvMouse: KMouse? = null
+    private var myHandler: Handler? = null
+    private var ktvMouse: KMouse? = null
     private var bitmapMatrix: Matrix = Matrix()
+    private var bitmapWidth = 0
+    private var bitmapHeight = 0
     private var cursorMatrix: Matrix? = null
-    var bitmapWidth = 0
-    var bitmapHeight = 0
     private var isConnectFail = false
+    private var connectFailCount = 0
     private var dx = 0//画布距离屏幕偏移量
     private var dy = 0
     private var scaleFactor: Float = 1f
     private var visibleRect = Rect()
     private var viewRect = Rect()
 
+
     init {
         setBackgroundColor(Color.BLACK)
 
-        //初始化鼠标
-        initCursor()
 
         //计算bitmap在布局中位置
         myHandler = Handler(Handler.Callback {
@@ -104,11 +104,15 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                             //连接时，返回得连接失败,  注意：需要区分两次连接导致得连接失败，还是配置参数导致得失败
                             else -> {
 //                            Log.i("MessageEvent", "eventBus: 连接失败,无法连接或认证ca主题")
-                                if (!isConnectFail) {
+                                if (connectFailCount == 3) {
                                     isConnectFail = true
-                                    Log.i(TAG, "so库问题，连接时，偶发认证失败，失败后重连")
+                                }
+                                if (connectFailCount < 3) {
+                                    ++connectFailCount
+                                    Log.i(TAG, "so库问题，连接时，偶发认证失败，失败后重连,重连次数$connectFailCount")
                                     enabledConnectSpice()
                                 } else {
+                                    connectFailCount = 0
                                     KSpice.spiceListener?.onFail(resources.getString(R.string.error_spice_unable_to_connect))
                                     EventBus.getDefault().post(
                                         KMessageEvent(
@@ -131,94 +135,10 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
         /**
          * 原生方法得接口回调
          */
-        spiceCommunicator?.setSpiceConnect(object :
-            ISpiceConnect {
-            override fun onUpdateBitmapWH(width: Int, height: Int) {
-//                Log.i(TAG, "onUpdateBitmapWH: $width,$height，bw:$bitmapWidth,bh:$bitmapHeight")
-                /*
-                if (width != bitmapWidth || height != bitmapHeight) {
-                    recoverySpiceResolvingPower()
-                }*/
-                reallocateDrawable(width, height)
-                if (width == bitmapWidth && height == bitmapHeight) {
-                    reallocateDrawable(width, height)
-                } else {
-                    recoverySpiceResolvingPower()
-                }
-            }
-
-            override fun onUpdateBitmap(x: Int, y: Int, width: Int, height: Int) {
-                postInvalidate()
-            }
-
-            override fun onMouseUpdate(x: Int, y: Int) {
-                /* if (KSpice.sysRunEnv) {
-                     ktvMouse?.let { mouse ->
-                         Log.i(TAG, "onMouseUpdate: $x,$y,mx${mouse.mouseX},my${mouse.mouseY}")
-                         cursorMatrix?.setTranslate(mouse.mouseX.toFloat(), mouse.mouseY.toFloat())
-                     }
-                     postInvalidate()
-                 }*/
-                postInvalidate()
-            }
-
-            override fun onMouseMode(relative: Boolean) {
-                Log.i(TAG, "onMouseMode: $relative")
-                mouseMode(relative)
-            }
-
-            override fun onConnectSucceed() {
-//                Log.i(TAG, "onConnectSucceed: 连接成功")
-                KSpice.spiceListener?.onSucceed()
-                myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
-                myHandler?.removeMessages(SPICE_CONNECT_FAILURE)
-                EventBus.getDefault().post(
-                    KMessageEvent(
-                        KMessageEvent.SPICE_CONNECT_SUCCESS
-                    )
-                )
-                myHandler?.post {
-                    if (KSpice.mouseMode == KSpice.Companion.MouseMode.MODE_CLICK) {
-                        ktvMouse = KTVMouse(context.applicationContext, this@KRemoteCanvas,this@KRemoteCanvas)
-                    } else if (KSpice.mouseMode == KSpice.Companion.MouseMode.MODE_TOUCH) {
-                        ktvMouse = KMobileMouse(
-                            context.applicationContext,
-                            this@KRemoteCanvas,
-                            this@KRemoteCanvas
-                        )
-                    }
-                }
-            }
-
-            override fun onConnectFail() {
-//                Log.i(TAG, "onConnectFail: 连接失败")
-                myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
-                myHandler?.sendEmptyMessage(SPICE_CONNECT_FAILURE)
-            }
-        })
-
-        enabledConnectSpice()
-
-
+        spiceCommunicator?.setSpiceConnect(this)
+        myHandler?.postDelayed({ enabledConnectSpice() }, 3000)
     }
 
-
-    /**
-     * 初始化鼠标
-     */
-    private fun initCursor() {
-        Log.i(TAG, "initCursor: 运行环境")
-        if (KSpice.sysRunEnv) {
-            cursorBitmap = BitmapFactory.decodeResource(resources, R.mipmap.cursor)
-            cursorMatrix = Matrix()
-            cursorBitmap?.let {
-                Log.i(TAG, "initCursor: 初始化鼠标")
-                cursorMatrix?.setScale(1.8f, 1.8f, it.width / 2f, it.height / 2f)
-                cursorBitmap =
-                    Bitmap.createBitmap(it, 0, 0, it.width, it.height, cursorMatrix!!, false)
-            }
-        }
-    }
 
     /**
      * 开始连接
@@ -226,6 +146,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     private fun enabledConnectSpice() {
         //IO 线程里拉取数据
         myHandler?.sendEmptyMessageDelayed(SPICE_CONNECT_TIMEOUT, 5 * 1000)
+        scope?.get()?.cancel(cause = CancellationException("取消发生异常"))
         scope = WeakReference(GlobalScope.launch {
             Log.i(TAG, "启动Spice连接线程: ")
             spiceCommunicator?.connectSpice(
@@ -239,15 +160,15 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                 KSpice.sound
             )
         })
-
     }
 
     /**
      * 调整为键盘显示时的分辨率
      */
     fun updateSpiceResolvingPower(width: Int, height: Int) {
+        bitmapWidth = width
+        bitmapHeight = height
         setBitmapConfig(width, height)
-        configMatrix(this.width, this.height, this.width, this.height)
     }
 
 
@@ -255,8 +176,9 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      * 恢复默认配置分辨率
      */
     fun recoverySpiceResolvingPower() {
+        bitmapWidth = 0
+        bitmapHeight = 0
         setBitmapConfig(KSpice.resolutionWidth, KSpice.resolutionheight)
-        configMatrix(this.width, this.height, KSpice.resolutionWidth, KSpice.resolutionheight)
     }
 
 
@@ -264,9 +186,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      * 设置bitmap显示宽高
      */
     private fun setBitmapConfig(width: Int, height: Int) {
-        bitmapWidth = width
-        bitmapHeight = height
-        spiceCommunicator?.SpiceRequestResolution(bitmapWidth, bitmapHeight)
+        spiceCommunicator?.SpiceRequestResolution(width, height)
     }
 
 
@@ -299,7 +219,10 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
             cursorBitmap?.let { cursor ->
                 cursorMatrix?.let { cm ->
                     ktvMouse?.let { mouse ->
-                        cursorMatrix?.setTranslate(mouse.mouseX.toFloat(), mouse.mouseY.toFloat())
+                        cursorMatrix?.setTranslate(
+                            mouse.mouseX.toFloat() + dx,
+                            mouse.mouseY.toFloat() + dy
+                        )
                     }
                     canvas.drawBitmap(cursor, cm, null)
                 }
@@ -322,7 +245,31 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
             )
         )
         spiceCommunicator?.setBitmap(canvasBitmap)
+        //如果键盘矩阵为0时，调整矩阵位置
+        if (bitmapWidth == 0 && bitmapHeight == 0) {
+            configMatrix(this.width, this.height, width, height)
+        }
+
+        //初始化鼠标
+        initCursor()
         post { setImageDrawable(drawable?.get()) }
+    }
+
+
+    /**
+     * 初始化鼠标
+     */
+    private fun initCursor() {
+        if (KSpice.sysRunEnv) {
+            cursorBitmap = BitmapFactory.decodeResource(resources, R.mipmap.cursor)
+            cursorMatrix = Matrix()
+            cursorBitmap?.let {
+//                Log.i(TAG, "initCursor: 初始化鼠标")
+                cursorMatrix?.setScale(1.8f, 1.8f, it.width / 2f, it.height / 2f)
+                cursorBitmap =
+                    Bitmap.createBitmap(it, 0, 0, it.width, it.height, cursorMatrix!!, false)
+            }
+        }
     }
 
 
@@ -470,32 +417,31 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
             Toast.makeText(context, "比例1：1", Toast.LENGTH_SHORT).show()
             return
         }
-        animate().scaleX(scaleFactor).scaleY(scaleFactor).setListener(object :Animator.AnimatorListener{
-            override fun onAnimationRepeat(animation: Animator?) {
-            }
+        animate().scaleX(scaleFactor).scaleY(scaleFactor)
+            .setListener(object : Animator.AnimatorListener {
+                override fun onAnimationRepeat(animation: Animator?) {
+                }
 
-            override fun onAnimationEnd(animation: Animator?) {
-                translationAfterLimit()
-            }
+                override fun onAnimationEnd(animation: Animator?) {
+                    translationAfterLimit()
+                }
 
-            override fun onAnimationCancel(animation: Animator?) {
-            }
+                override fun onAnimationCancel(animation: Animator?) {
+                }
 
-            override fun onAnimationStart(animation: Animator?) {
-            }
-        }).start()
+                override fun onAnimationStart(animation: Animator?) {
+                }
+            }).start()
         //解决缩小时，偏移屏幕中心问题
-       /* val ofFloat = ValueAnimator.ofFloat(scaleFactor + 0.5f, scaleFactor)
-        ofFloat.addUpdateListener { a ->
-            val animatedValue = a.animatedValue as Float
-            Log.i(TAG, "canvasZoomOut: $animatedValue")
-            translationAfterLimit()
-        }
-        ofFloat.start()*/
+        /* val ofFloat = ValueAnimator.ofFloat(scaleFactor + 0.5f, scaleFactor)
+         ofFloat.addUpdateListener { a ->
+             val animatedValue = a.animatedValue as Float
+             Log.i(TAG, "canvasZoomOut: $animatedValue")
+             translationAfterLimit()
+         }
+         ofFloat.start()*/
     }
 
-    override fun zoom(scale: Float) {
-    }
 
     override fun translation(dx: Int, dy: Int) {
         val isDefaultRect = translationBeforeLimit()
@@ -538,14 +484,12 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
             if (sc.isConnectSucceed) {
                 sc.isConnectSucceed = false
                 sc.isClickDisconnect = true
-                //TODO 连接超时出现的内存泄漏，需要确定走没走此方法
-                Log.i(TAG, "close: 销毁了SpiceCommunicator")
                 sc.disconnect()
             }
         }
-        sc?.disconnect()
-        spiceCommunicator=null
-//        sc?.disconnect()
+        spiceCommunicator?.setSpiceConnect(null)
+        spiceCommunicator = null
+        myHandler?.removeCallbacksAndMessages(null)
         scope?.get()?.cancel()
         KSpice.resolutionWidth = 0
         KSpice.resolutionheight = 0
@@ -554,6 +498,67 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
 
     companion object {
         private const val TAG = "KRemoteCanvas"
+    }
+
+    override fun onUpdateBitmapWH(width: Int, height: Int) {
+        Log.i(TAG, "onUpdateBitmapWH: ")
+        if (width == KSpice.resolutionWidth && height == KSpice.resolutionheight || width == bitmapWidth && width == bitmapHeight) {
+            reallocateDrawable(width, height)
+        } else {
+            reallocateDrawable(width, height)
+            if (bitmapWidth != 0 && bitmapHeight != 0) {
+                updateSpiceResolvingPower(bitmapWidth, bitmapHeight)
+            } else {
+                recoverySpiceResolvingPower()
+            }
+        }
+    }
+
+    override fun onUpdateBitmap(x: Int, y: Int, width: Int, height: Int) {
+        Log.i(TAG, "onUpdateBitmap: ")
+        postInvalidate()
+    }
+
+    override fun onMouseUpdate(x: Int, y: Int) {
+        Log.i(TAG, "onMouseUpdate: ")
+        postInvalidate()
+    }
+
+    override fun onMouseMode(relative: Boolean) {
+        Log.i(TAG, "onMouseMode: ")
+    }
+
+    override fun onConnectSucceed() {
+        Log.i(TAG, "onConnectSucceed: ")
+        KSpice.spiceListener?.onSucceed()
+        myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
+        myHandler?.removeMessages(SPICE_CONNECT_FAILURE)
+        EventBus.getDefault().post(
+            KMessageEvent(
+                KMessageEvent.SPICE_CONNECT_SUCCESS
+            )
+        )
+        myHandler?.post {
+            if (KSpice.mouseMode == KSpice.Companion.MouseMode.MODE_CLICK) {
+                ktvMouse = KTVMouse(
+                    context.applicationContext,
+                    this@KRemoteCanvas,
+                    this@KRemoteCanvas
+                )
+            } else if (KSpice.mouseMode == KSpice.Companion.MouseMode.MODE_TOUCH) {
+                ktvMouse = KMobileMouse(
+                    context.applicationContext,
+                    this@KRemoteCanvas,
+                    this@KRemoteCanvas
+                )
+            }
+        }
+    }
+
+    override fun onConnectFail() {
+        Log.i(TAG, "onConnectFail: ")
+        myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
+        myHandler?.sendEmptyMessage(SPICE_CONNECT_FAILURE)
     }
 
 

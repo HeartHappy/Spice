@@ -28,6 +28,7 @@ import kotlinx.android.synthetic.main.activity_remote_canvas.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import kotlin.system.exitProcess
 
 /**
  * Created Date 2020/7/6.
@@ -126,17 +127,16 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             KMessageEvent.SPICE_CONNECT_TIMEOUT -> {
                 messageEvent.msg?.let {
                     canvas.close()
-                    dialogHint(it)
+                    dialogHint(it,true)
                 }
             }
             //失败原因：1、连接失败   2、连接超时  3、远程被断开
             KMessageEvent.SPICE_CONNECT_FAILURE -> {
                 messageEvent.msg?.let {
                     canvas.close()
-                    dialogHint(it)
+                    dialogHint(it, false)
                 }
             }
-
             else -> Log.i("MessageEvent", "eventBus: 其他")
         }
     }
@@ -145,7 +145,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     /**
      * Spice连接时的dialog提示
      */
-    private fun dialogHint(message: String) {
+    private fun dialogHint(message: String, isExit: Boolean) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle(getString(R.string.error))
         builder.setMessage(message)
@@ -155,6 +155,9 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         ) { dialog, _ ->
             dialog.dismiss()
             finish()
+            if(isExit){
+                exitProcess(0)
+            }
         }
         if (!(alertDialog != null && alertDialog?.isShowing!!)) {
             alertDialog = builder.create()
@@ -258,17 +261,11 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         return true
     }
 
-
     /**
      * 发送键盘key指令
      */
     private fun sendKey(code: Int, down: Boolean) {
         canvas.sendKey(code, down)
-    }
-
-    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
-        Log.i(TAG, "onGenericMotionEvent: ${event.actionMasked}")
-        return super.onGenericMotionEvent(event)
     }
 
 

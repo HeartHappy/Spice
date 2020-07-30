@@ -22,12 +22,15 @@ class KPopMenuList(val context: Context, private val listener: IPopMenuItemListe
         contentView = view
         width = context.resources.getDimensionPixelSize(R.dimen.dp_80)
         height = context.resources.getDimensionPixelSize(R.dimen.dp_80)
-        isOutsideTouchable=true
-        contentView.findViewById<TextView>(R.id.session_sys_keyboard).setOnClickListener {
+        isOutsideTouchable = true
+        val sessionSysKeyboard = contentView.findViewById<TextView>(R.id.session_sys_keyboard)
+        sessionSysKeyboard.isFocusable = true
+        sessionSysKeyboard.setOnClickListener {
             dismiss()
             listener.onClickSystemKeyboard()
         }
-        contentView.findViewById<TextView>(R.id.session_disconnect).setOnClickListener {
+        val sessionDisconnect = contentView.findViewById<TextView>(R.id.session_disconnect)
+        sessionDisconnect.setOnClickListener {
             dismiss()
             listener.onClickDisconnect()
         }

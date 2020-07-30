@@ -83,7 +83,6 @@ public class SpiceCommunicator {
     public boolean isConnectSucceed;
     public boolean isClickDisconnect;
 
-
     private static WeakReference<SpiceCommunicator> myself;
 
 
@@ -116,7 +115,10 @@ public class SpiceCommunicator {
         if (spiceConnect != null) {
             spiceConnect = null;
         }
-        myself = null;
+        if (myself != null) {
+            myself.clear();
+            myself = null;
+        }
     }
 
     public void sendSpiceKeyEvent(boolean keyDown, int virtualKeyCode) {
@@ -129,8 +131,8 @@ public class SpiceCommunicator {
         Log.i(TAG, "sendMouseEvent: " + x + "x" + y + "," + "metaState: " +
                 metaState + ", pointerMask: " + pointerMask + ",rel:" + rel);
         SpiceButtonEvent(x, y, metaState, pointerMask, rel);
-        if (myself.get().spiceConnect != null) {
-            myself.get().spiceConnect.onMouseUpdate(x, y);
+        if (spiceConnect != null) {
+            spiceConnect.onMouseUpdate(x, y);
         }
     }
 
@@ -143,26 +145,18 @@ public class SpiceCommunicator {
 
     public static void sendMessageWithText(int message, String messageText) {
         Log.i(TAG, "sendMessageWithText: " + messageText);
-       /* if (myself == null || myself.get() == null) return;
-        Log.d(TAG, "sendMessage called with message: " + messageText);
-        Bundle b = new Bundle();
-        b.putString("message", messageText);
-        Message m = new Message();
-        m.what = message;
-        m.setData(b);*/
         EventBus.getDefault().post(new KMessageEvent(message));
     }
 
 
     public void onSettingsChanged(int width, int height, int bpp) {
         Log.i(TAG, "onSettingsChanged called, wxh: " + width + "x" + height);
-        if (myself == null || myself.get() == null) return;
-        if (myself.get().spiceConnect != null) {
+        if (spiceConnect != null) {
             if (!isConnectSucceed) {
                 isConnectSucceed = true;
-                myself.get().spiceConnect.onConnectSucceed();
+                spiceConnect.onConnectSucceed();
             }
-            myself.get().spiceConnect.onUpdateBitmapWH(width, height);
+            spiceConnect.onUpdateBitmapWH(width, height);
         }
     }
 
