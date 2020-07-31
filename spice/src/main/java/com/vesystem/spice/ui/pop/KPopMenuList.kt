@@ -2,6 +2,7 @@ package com.vesystem.spice.ui.pop
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.widget.PopupWindow
 import android.widget.TextView
@@ -23,6 +24,7 @@ class KPopMenuList(val context: Context, private val listener: IPopMenuItemListe
         width = context.resources.getDimensionPixelSize(R.dimen.dp_80)
         height = context.resources.getDimensionPixelSize(R.dimen.dp_80)
         isOutsideTouchable = true
+        setBackgroundDrawable(ColorDrawable(0))
         val sessionSysKeyboard = contentView.findViewById<TextView>(R.id.session_sys_keyboard)
         sessionSysKeyboard.isFocusable = true
         sessionSysKeyboard.setOnClickListener {

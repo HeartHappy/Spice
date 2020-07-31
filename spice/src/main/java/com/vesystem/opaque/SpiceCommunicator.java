@@ -20,6 +20,7 @@
 
 package com.vesystem.opaque;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
@@ -113,10 +114,12 @@ public class SpiceCommunicator {
     public void disconnect() {
         SpiceClientDisconnect();
         if (spiceConnect != null) {
+            Log.i(TAG, "disconnect: spiceConnect 滞空");
             spiceConnect = null;
         }
         if (myself != null) {
             myself.clear();
+            Log.i(TAG, "disconnect: myself 滞空");
             myself = null;
         }
     }
@@ -128,8 +131,8 @@ public class SpiceCommunicator {
 
 
     public void writePointerEvent(int x, int y, int metaState, int pointerMask, boolean rel) {
-        Log.i(TAG, "sendMouseEvent: " + x + "x" + y + "," + "metaState: " +
-                metaState + ", pointerMask: " + pointerMask + ",rel:" + rel);
+      /*  Log.i(TAG, "sendMouseEvent: " + x + "x" + y + "," + "metaState: " +
+                metaState + ", pointerMask: " + pointerMask + ",rel:" + rel);*/
         SpiceButtonEvent(x, y, metaState, pointerMask, rel);
         if (spiceConnect != null) {
             spiceConnect.onMouseUpdate(x, y);
@@ -138,22 +141,22 @@ public class SpiceCommunicator {
 
 
     public static void sendMessage(int message) {
-//        if (myself == null || myself.get() == null) return;
-        Log.i(TAG, "sendMessage called with message: " + message);
+//        Log.i(TAG, "sendMessage called with message: " + message);
         EventBus.getDefault().post(new KMessageEvent(message));
     }
 
     public static void sendMessageWithText(int message, String messageText) {
-        Log.i(TAG, "sendMessageWithText: " + messageText);
+//        Log.i(TAG, "sendMessageWithText: " + messageText);
         EventBus.getDefault().post(new KMessageEvent(message));
     }
 
 
     public void onSettingsChanged(int width, int height, int bpp) {
-        Log.i(TAG, "onSettingsChanged called, wxh: " + width + "x" + height);
+//        Log.i(TAG, "onSettingsChanged called, wxh: " + width + "x" + height);
         if (spiceConnect != null) {
             if (!isConnectSucceed) {
                 isConnectSucceed = true;
+
                 spiceConnect.onConnectSucceed();
             }
             spiceConnect.onUpdateBitmapWH(width, height);
@@ -193,7 +196,7 @@ public class SpiceCommunicator {
     }
 
     private static void OnMouseUpdate(int x, int y) {
-        Log.i(TAG, "OnMouseUpdate: X:" + x + ",Y:" + y);
+//        Log.i(TAG, "OnMouseUpdate: X:" + x + ",Y:" + y);
         if (myself == null || myself.get() == null) return;
         //android.util.Log.i(TAG, "OnMouseUpdate called: " + x +", " + y);
         if (myself.get().spiceConnect != null) {
@@ -203,8 +206,7 @@ public class SpiceCommunicator {
 
     private static void OnMouseMode(boolean relative) {
         if (myself == null || myself.get() == null) return;
-        Log.i(TAG, "OnMouseMode called, relative: " + relative);
-//        myself.get().wrCanvas.get().mouseMode(relative);
+//        Log.i(TAG, "OnMouseMode called, relative: " + relative);
         if (myself.get().spiceConnect != null) {
             myself.get().spiceConnect.onMouseMode(relative);
         }

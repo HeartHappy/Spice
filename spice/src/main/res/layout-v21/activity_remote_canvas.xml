@@ -1,4 +1,4 @@
-<com.vesystem.spice.ui.KEventFragment xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/flParent"
@@ -98,4 +98,4 @@
         app:elevation="@dimen/dp_4"
         app:rippleColor="@color/col_gray"
         tools:ignore="RtlHardcoded" />
-</com.vesystem.spice.ui.KEventFragment>
+</FrameLayout>

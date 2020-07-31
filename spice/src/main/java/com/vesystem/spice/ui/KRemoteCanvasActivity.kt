@@ -8,7 +8,10 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.InputDevice
+import android.view.KeyEvent
+import android.view.View
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import com.vesystem.spice.R
@@ -58,18 +61,17 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     }
 
 
-    @Suppress("DEPRECATION")
     private fun initView() {
         flRemoteMenu.setOnClickListener(this)
         ISoftKeyboardListener.setSoftKeyBoardListener(this, object : OnSoftKeyBoardChangeListener {
             override fun keyBoardShow(height: Int) {
-                Log.i(TAG, "keyBoardShow: $height")
+//                Log.i(TAG, "keyBoardShow: $height")
                 flRemoteMenu.visibility = View.GONE
                 canvas.updateSpiceResolvingPower(canvas.width, canvas.height - height)
             }
 
             override fun keyBoardHide(height: Int) {
-                Log.i(TAG, "keyBoardHide: $height")
+//                Log.i(TAG, "keyBoardHide: $height")
                 flRemoteMenu.visibility = View.VISIBLE
                 canvas.recoverySpiceResolvingPower()
             }
@@ -127,7 +129,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             KMessageEvent.SPICE_CONNECT_TIMEOUT -> {
                 messageEvent.msg?.let {
                     canvas.close()
-                    dialogHint(it,true)
+                    dialogHint(it, true)
                 }
             }
             //失败原因：1、连接失败   2、连接超时  3、远程被断开
@@ -155,8 +157,12 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         ) { dialog, _ ->
             dialog.dismiss()
             finish()
-            if(isExit){
+            if (isExit) {
                 exitProcess(0)
+                /*val intent = packageManager.getLaunchIntentForPackage(packageName)
+                intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
+                android.os.Process.killProcess(android.os.Process.myPid())*/
             }
         }
         if (!(alertDialog != null && alertDialog?.isShowing!!)) {

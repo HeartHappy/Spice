@@ -31,7 +31,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import java.lang.ref.WeakReference
-import java.util.concurrent.CancellationException
 
 /**
  * Created Date 2020/7/6.
@@ -109,7 +108,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                                 }
                                 if (connectFailCount < 3) {
                                     ++connectFailCount
-                                    Log.i(TAG, "so库问题，连接时，偶发认证失败，失败后重连,重连次数$connectFailCount")
+//                                    Log.i(TAG, "so库问题，连接时，偶发认证失败，失败后重连,重连次数$connectFailCount")
                                     enabledConnectSpice()
                                 } else {
                                     connectFailCount = 0
@@ -120,7 +119,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                                             resources.getString(R.string.error_spice_unable_to_connect)
                                         )
                                     )
-                                    Log.i(TAG, "第二次连接失败: ")
+//                                    Log.i(TAG, "第二次连接失败: ")
                                 }
                             }
                         }
@@ -146,9 +145,9 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     private fun enabledConnectSpice() {
         //IO 线程里拉取数据
         myHandler?.sendEmptyMessageDelayed(SPICE_CONNECT_TIMEOUT, 5 * 1000)
-        scope?.get()?.cancel(cause = CancellationException("取消发生异常"))
+        scope?.get()?.cancel()
         scope = WeakReference(GlobalScope.launch {
-            Log.i(TAG, "启动Spice连接线程: ")
+//            Log.i(TAG, "启动Spice连接线程: ")
             spiceCommunicator?.connectSpice(
                 KSpice.ip,
                 KSpice.port,
@@ -270,22 +269,6 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                     Bitmap.createBitmap(it, 0, 0, it.width, it.height, cursorMatrix!!, false)
             }
         }
-    }
-
-
-    /**
-     *
-     *
-     *  TV端的鼠标操作
-     *
-     *
-     */
-    override fun setMousePointerPosition(x: Int, y: Int) {
-        Log.i(TAG, "setMousePointerPosition: X:$x,Y:$y")
-    }
-
-    override fun mouseMode(relative: Boolean) {
-        Log.i(TAG, "mouseMode: $relative")
     }
 
 
@@ -453,13 +436,13 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
 
     override fun translationBeforeLimit(): Boolean {
         getHitRect(viewRect)
-        Log.i(TAG, "translationBeforeLimit: 平移之前校验getHitRect：$viewRect")
+//        Log.i(TAG, "translationBeforeLimit: 平移之前校验getHitRect：$viewRect")
         return viewRect.left == 0 && viewRect.top == 0 && viewRect.right == width && viewRect.bottom == height
     }
 
     override fun translationAfterLimit() {
         getGlobalVisibleRect(visibleRect)//在屏幕显示区域Rect
-        Log.i(TAG, "translationLimit: 平移之后校验：$visibleRect")
+//        Log.i(TAG, "translationLimit: 平移之后校验：$visibleRect")
 
         if (visibleRect.left > 0) {
             offsetLeftAndRight(-visibleRect.left)
@@ -501,7 +484,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     }
 
     override fun onUpdateBitmapWH(width: Int, height: Int) {
-        Log.i(TAG, "onUpdateBitmapWH: ")
+//        Log.i(TAG, "onUpdateBitmapWH: $width,$height")
         if (width == KSpice.resolutionWidth && height == KSpice.resolutionheight || width == bitmapWidth && width == bitmapHeight) {
             reallocateDrawable(width, height)
         } else {
@@ -515,12 +498,12 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     }
 
     override fun onUpdateBitmap(x: Int, y: Int, width: Int, height: Int) {
-        Log.i(TAG, "onUpdateBitmap: ")
+//        Log.i(TAG, "onUpdateBitmap: $x,$y,$width,$height")
         postInvalidate()
     }
 
     override fun onMouseUpdate(x: Int, y: Int) {
-        Log.i(TAG, "onMouseUpdate: ")
+//        Log.i(TAG, "onMouseUpdate: $x,$y")
         postInvalidate()
     }
 
@@ -529,7 +512,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     }
 
     override fun onConnectSucceed() {
-        Log.i(TAG, "onConnectSucceed: ")
+//        Log.i(TAG, "onConnectSucceed: ")
         KSpice.spiceListener?.onSucceed()
         myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
         myHandler?.removeMessages(SPICE_CONNECT_FAILURE)
@@ -556,7 +539,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     }
 
     override fun onConnectFail() {
-        Log.i(TAG, "onConnectFail: ")
+//        Log.i(TAG, "onConnectFail: ")
         myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
         myHandler?.sendEmptyMessage(SPICE_CONNECT_FAILURE)
     }

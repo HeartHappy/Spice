@@ -3,21 +3,14 @@ package com.vesystem.test
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.vesystem.spice.model.KSpice
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.properties.Delegates
 
 class MainActivity : AppCompatActivity() {
-    var launch :Job by Delegates.notNull()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         imm()
@@ -28,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun connectDesktop() {
         btnConnect.setOnClickListener {
-            KSpice.connect("192.168.30.62", "5903", "psfdiwgrcn")
+            KSpice.connect("192.168.30.62", "5903", "r15en4tasd")
                 .sound(true)
 //                .resolution(720,1080)
                 .mouseMode(KSpice.Companion.MouseMode.MODE_CLICK)
