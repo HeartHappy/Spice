@@ -3,7 +3,7 @@ package com.vesystem.spice.model
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-import android.util.Log
+import android.content.SharedPreferences
 import com.vesystem.spice.ui.KRemoteCanvasActivity
 import com.vesystem.spice.utils.SystemRunEnvUtil
 import java.io.File
@@ -17,19 +17,34 @@ import kotlin.properties.Delegates
 class KSpice {
 
     companion object {
-        internal var ip: String by Delegates.notNull()
-        internal var port: String by Delegates.notNull()
-        internal const val tPort = "-1"
-        internal var password: String by Delegates.notNull()
-        internal var cf: String by Delegates.notNull()
-        internal val ca: String? = null
-        internal const val cs: String = ""
-        internal var sound: Boolean = false
-        internal var resolutionWidth = 0//分辨率宽
-        internal var resolutionheight = 0//分辨率高
-        internal var spiceListener: ISpiceListener? = null
-        internal var sysRunEnv = false
-        internal var mouseMode = MouseMode.MODE_CLICK//默认操作模式，点击
+        private var ip: String by Delegates.notNull()
+        private var port: String by Delegates.notNull()
+        private const val tPort = "-1"
+        private var password: String by Delegates.notNull()
+        private var cf: String by Delegates.notNull()
+
+        //        internal val ca: String? = null
+//        internal const val cs: String = ""
+        private var sound: Boolean = false
+        private var resolutionWidth = 0//分辨率宽
+        private var resolutionHeight = 0//分辨率高
+        private var sysRunEnv = false
+        private var mouseMode = MouseMode.MODE_CLICK//默认操作模式，点击
+
+
+        internal const val SPICE_CONFIG = "SpiceConfig"
+        internal const val IP = "IP"
+        internal const val PORT = "PORT"
+        internal const val TPort = "TPort"
+        internal const val PASSWORD = "PASSWORD"
+        internal const val CF = "CF"
+        internal const val SOUND = "SOUND"
+        internal const val MOUSE_MODE = "MOUSE_MODE"
+        internal const val SYSTEM_RUN_ENV = "SYSTEM_RUN_ENV"
+        internal const val RESOLUTION_WIDTH = "RESOLUTION_WIDTH"
+        internal const val RESOLUTION_HEIGHT = "RESOLUTION_HEIGHT"
+
+        const val ACTION_SPICE_CONNECT_SUCCEED = "ACTION_SPICE_CONNECT_SUCCEED"//spice连接成功通知Action
 
         fun connect(ip: String, port: String, password: String): Companion {
             this.ip = ip
@@ -43,14 +58,10 @@ class KSpice {
             return this
         }
 
-        fun listener(spiceListener: ISpiceListener): Companion {
-            this.spiceListener = spiceListener
-            return this
-        }
 
         fun resolution(width: Int, height: Int): Companion {
             this.resolutionWidth = width
-            this.resolutionheight = height
+            this.resolutionHeight = height
             return this
         }
 
@@ -62,17 +73,49 @@ class KSpice {
         fun start(context: Context) {
             cf = context.filesDir.path + File.separator + "ca0.pem"
             sysRunEnv = SystemRunEnvUtil.comprehensiveCheckSystemEnv(context)
-            Log.i("KSpice", "start: 系统运行环境：$sysRunEnv")
+
+            val widthPixels = context.resources.displayMetrics.widthPixels
+            val heightPixels = context.resources.displayMetrics.heightPixels
+            resolutionWidth =
+                if (kotlin.math.abs(resolutionWidth) > widthPixels) widthPixels else kotlin.math.abs(
+                    resolutionWidth
+                )
+            resolutionHeight =
+                if (kotlin.math.abs(resolutionHeight) > heightPixels) heightPixels else kotlin.math.abs(
+                    resolutionHeight
+                )
+
+            val sp = getSpiceConfigSP(context)
+            whiteSharedPreferences(sp)
+
+            System.gc()
             val intent = Intent(context, KRemoteCanvasActivity::class.java)
             intent.flags = FLAG_ACTIVITY_NEW_TASK
             context.startActivity(intent)
         }
 
 
-        interface ISpiceListener {
-            fun onSucceed()
-            fun onFail(message: String)
+        fun getSpiceConfigSP(context: Context): SharedPreferences {
+            return context.getSharedPreferences(SPICE_CONFIG, Context.MODE_PRIVATE)
         }
+
+
+        private fun whiteSharedPreferences(sp: SharedPreferences) {
+            val edit = sp.edit()
+            edit.putString(IP, ip)
+            edit.putString(PORT, port)
+            edit.putString(TPort, tPort)
+            edit.putString(PASSWORD, password)
+            edit.putString(CF, cf)
+            edit.putBoolean(SOUND, sound)
+            edit.putBoolean(SYSTEM_RUN_ENV, sysRunEnv)
+
+            edit.putInt(RESOLUTION_WIDTH, resolutionWidth)
+            edit.putInt(RESOLUTION_HEIGHT, resolutionHeight)
+            edit.putString(MOUSE_MODE, mouseMode.toString())
+            edit.apply()
+        }
+
 
         enum class MouseMode {
             MODE_CLICK,

@@ -1,5 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.vesystem.spice">
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -16,9 +18,11 @@
 
     <application>
         <activity
-            android:name="com.vesystem.spice.ui.KRemoteCanvasActivity"
+            android:name=".ui.KRemoteCanvasActivity"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:process=":remotedesktop"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
     </application>
+
 </manifest>

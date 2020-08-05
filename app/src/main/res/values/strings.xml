@@ -1,1 +1,9 @@
-<resources></resources>
+<resources>
+    <string name="conn_ip">请输入IP</string>
+    <string name="conn_port">请输入端口号</string>
+    <string name="conn_pwd">请输入密码</string>
+    <string name="please_enter_pixel_width">请输入像素宽</string>
+    <string name="please_enter_pixel_height">请输入像素高</string>
+    <string name="remote_connect">远程连接</string>
+    <string name="ip_value">192.168.30.62</string>
+</resources>

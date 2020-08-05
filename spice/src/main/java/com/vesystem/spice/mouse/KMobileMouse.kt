@@ -3,7 +3,6 @@
 package com.vesystem.spice.mouse
 
 import android.content.Context
-import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import com.vesystem.spice.zoom.IZoom
@@ -36,7 +35,7 @@ class KMobileMouse(
             override fun onLongPress(event: MotionEvent) {
                 //单指长按
                 if (event.pointerCount == 1 && !isTranslation) {
-                    Log.i(TAG, "onLongPress: 长按")
+//                    Log.i(TAG, "onLongPress: 长按")
                     vibrator?.vibrate(100)
                     isLongPress = true
                     mouseOption.handlerMouseEvent(
@@ -71,13 +70,13 @@ class KMobileMouse(
                 val pdx = event.x - this.pressedX
                 val pdy = event.y - this.pressedY
                 if (event.pointerCount == 2 && kotlin.math.abs(pdx) > 5 && kotlin.math.abs(pdy) > 5) {
-                    Log.i(TAG, "onTouchEvent: 双指触摸平移画面$pdx，$pdy")
+//                    Log.i(TAG, "onTouchEvent: 双指触摸平移画面$pdx，$pdy")
                     isTranslation = true
                     iZoom.translation(pdx.toInt(), pdy.toInt())
                     return true
                 }
                 if (isDoubleDown) {
-                    Log.i(TAG, "onTouchEvent: 双指触摸平移，只松开了一个手指")
+//                    Log.i(TAG, "onTouchEvent: 双指触摸平移，只松开了一个手指")
                     return true
                 }
 
@@ -91,10 +90,10 @@ class KMobileMouse(
                         SPICE_MOUSE_BUTTON_LEFT,
                         false
                     )
-                    Log.i(
-                        TAG,
-                        "onTouchEvent: 按下移动,鼠标位置：$mouseX,$mouseY,画布偏移屏幕距离：$dx,$dy"
-                    )
+                    /* Log.i(
+                         TAG,
+                         "onTouchEvent: 按下移动,鼠标位置：$mouseX,$mouseY,画布偏移屏幕距离：$dx,$dy"
+                     )*/
                 } else {
                     mouseOption.mouseMove(
                         mouseX - dx,
@@ -103,10 +102,10 @@ class KMobileMouse(
                         SPICE_MOUSE_BUTTON_MOVE,
                         false
                     )
-                    Log.i(
+                    /*Log.i(
                         TAG,
                         "onTouchEvent: 移动,鼠标位置：$mouseX,$mouseY,画布偏移屏幕距离：$dx,$dy,相对屏幕：${event.rawX},${event.rawY}"
-                    )
+                    )*/
                 }
                 return true
             }
@@ -114,7 +113,7 @@ class KMobileMouse(
                 isDoubleDown = false//双指都松开了
                 relativeX = mouseX
                 relativeY = mouseY
-                Log.i(TAG, "onTouchEvent: 单指松开$isTranslation")
+//                Log.i(TAG, "onTouchEvent: 单指松开$isTranslation")
                 if (isLongPress) {
                     mouseOption.releaseMouseEvent(
                         mouseX - dx,
@@ -124,7 +123,7 @@ class KMobileMouse(
                         false
                     )
                     isLongPress = false
-                    Log.i(TAG, "onTouchEvent: 单指长按松开")
+//                    Log.i(TAG, "onTouchEvent: 单指长按松开")
                     return true
                 }
                 //松开时小于5px代表是按下未移动
@@ -143,10 +142,10 @@ class KMobileMouse(
                         SPICE_MOUSE_BUTTON_LEFT,
                         false
                     )
-                    Log.i(
-                        TAG,
-                        "onTouchEvent: 单击${event.x - this.pressedX},${event.y - this.pressedY}"
-                    )
+                    /* Log.i(
+                         TAG,
+                         "onTouchEvent: 单击${event.x - this.pressedX},${event.y - this.pressedY}"
+                     )*/
                 }
 
                 return true
@@ -160,13 +159,13 @@ class KMobileMouse(
                 if (isTranslation) {
                     isTranslation = false
                     iZoom.translationAfterLimit()
-                    Log.i(TAG, "onTouchEvent: 双指触摸平移松开")
+//                    Log.i(TAG, "onTouchEvent: 双指触摸平移松开")
                     return true
                 }
                 vibrator?.vibrate(100)
                 downMouseRightButton(mouseX - dx, mouseY - dy)
                 upMouseRightButton(mouseX - dx, mouseY - dy)
-                Log.i(TAG, "onTouchEvent: 双指屏幕固定位置松开，即右键弹出菜单")
+//                Log.i(TAG, "onTouchEvent: 双指屏幕固定位置松开，即右键弹出菜单")
                 return true
             }
         }

@@ -1,22 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rl"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context="com.vesystem.test.MainActivity"
-    tools:ignore="ContentDescription">
+    tools:context="com.vesystem.test.MainActivity">
+
+    <EditText
+        android:id="@+id/etConnIp"
+        style="@style/style_et"
+        android:hint="@string/conn_ip"
+        android:text="@string/ip_value" />
+
+    <EditText
+        android:id="@+id/etConnPort"
+        style="@style/style_et"
+        android:hint="@string/conn_port"
+        android:text="5901" />
+
+    <EditText
+        android:id="@+id/etConnPwd"
+        style="@style/style_et"
+        android:hint="@string/conn_pwd"
+        android:text="iujmg7vped" />
+
+    <EditText
+        android:id="@+id/etConnWidth"
+        style="@style/style_et"
+        android:hint="@string/please_enter_pixel_width"
+        android:inputType="number"
+        android:textColorHint="@color/col_gray" />
+
+    <EditText
+        android:id="@+id/etConnHeight"
+        style="@style/style_et"
+        android:hint="@string/please_enter_pixel_height"
+        android:inputType="number"
+        android:textColorHint="@color/col_gray" />
 
     <Button
         android:id="@+id/btnConnect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_marginBottom="@dimen/dp_40"
-        android:layout_gravity="center"
-        android:text="远程连接->点击操作" />
+        android:text="@string/remote_connect" />
 
     <!--<Button
         android:id="@+id/btnConnectByTouch"
@@ -26,4 +54,4 @@
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
         android:text="远程连接->触摸操作" />-->
-</RelativeLayout>
+</LinearLayout>

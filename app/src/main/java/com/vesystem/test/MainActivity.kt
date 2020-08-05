@@ -1,5 +1,9 @@
 package com.vesystem.test
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -11,49 +15,40 @@ import com.vesystem.spice.model.KSpice
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+    private val connectReceiver = ConnectReceiver()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         imm()
         setContentView(R.layout.activity_main)
+        val widthPixels = resources.displayMetrics.widthPixels
+        val heightPixels = resources.displayMetrics.heightPixels
+        etConnWidth.setText("$widthPixels")
+        etConnHeight.setText("$heightPixels")
 
+        val intent = IntentFilter()
+        intent.addAction(KSpice.ACTION_SPICE_CONNECT_SUCCEED)
+        registerReceiver(connectReceiver, intent)
         connectDesktop()
     }
 
     private fun connectDesktop() {
         btnConnect.setOnClickListener {
-            KSpice.connect("192.168.30.62", "5903", "r15en4tasd")
+            KSpice.connect(
+                etConnIp.text.toString(),
+                etConnPort.text.toString(),
+                etConnPwd.text.toString()
+            )
                 .sound(true)
-//                .resolution(720,1080)
+                .resolution(
+                    etConnWidth.text.toString().toInt(),
+                    etConnHeight.text.toString().toInt()
+                )
                 .mouseMode(KSpice.Companion.MouseMode.MODE_CLICK)
-                .listener(object : KSpice.Companion.ISpiceListener {
-                    override fun onSucceed() {
-                        Log.i("MainActivity", "onSucceed: 连接成功")
-                    }
-
-                    override fun onFail(message: String) {
-                        Log.i("MainActivity", "onFail: $message")
-                    }
-                })
                 .start(this.applicationContext)
+
         }
 
-        /* btnConnectByTouch.setOnClickListener {
-             KSpice.connect("192.168.30.62", "5903", "rhkvqgn35s")
-                 .sound(true)
- //                .resolution(720,1080)
-                 .mouseMode(KSpice.Companion.MouseMode.MODE_TOUCH)
-                 .listener(object : KSpice.Companion.ISpiceListener {
-                     override fun onSucceed() {
-                         Log.i("MainActivity", "onSucceed: 连接成功")
-                     }
 
-                     override fun onFail(message: String) {
-                         Log.i("MainActivity", "onFail: $message")
-                     }
-                 })
-                 .start(this.applicationContext)
-
-         }*/
     }
 
 
@@ -69,9 +64,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(connectReceiver)
+    }
     /* override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
          Log.i("TAG", "dispatchTouchEvent: ${ev.actionMasked}")
          return true
      }*/
 
+
+    class ConnectReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == KSpice.ACTION_SPICE_CONNECT_SUCCEED) {
+                Log.i("ConnectReceiver", "onReceive: 连接成功")
+            }
+        }
+    }
 }

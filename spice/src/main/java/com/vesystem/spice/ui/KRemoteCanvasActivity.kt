@@ -24,14 +24,14 @@ import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_META_MASK
 import com.vesystem.spice.model.KMessageEvent
 import com.vesystem.spice.model.KSpice
 import com.vesystem.spice.ui.interfaces.IPopMenuItemListener
-import com.vesystem.spice.ui.interfaces.ISoftKeyboardListener
-import com.vesystem.spice.ui.interfaces.ISoftKeyboardListener.OnSoftKeyBoardChangeListener
+import com.vesystem.spice.ui.interfaces.SoftKeyBoardListener
 import com.vesystem.spice.ui.pop.KPopMenuList
+import com.vesystem.spice.utils.ViewOperateUtil
 import kotlinx.android.synthetic.main.activity_remote_canvas.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import kotlin.system.exitProcess
+
 
 /**
  * Created Date 2020/7/6.
@@ -47,6 +47,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     private var dialog: ProgressDialog? = null //连接时的加载dialog
     private var alertDialog: AlertDialog? = null //连接信息提示
     private var popMenuList: KPopMenuList? = null//菜单弹出列表Pop
+    private var keyBoardIsShow: Boolean = false//键盘是否显示
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -55,7 +56,6 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this)
         }
-
         initView()
         createLoading()
     }
@@ -63,26 +63,30 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
 
     private fun initView() {
         flRemoteMenu.setOnClickListener(this)
-        ISoftKeyboardListener.setSoftKeyBoardListener(this, object : OnSoftKeyBoardChangeListener {
-            override fun keyBoardShow(height: Int) {
-//                Log.i(TAG, "keyBoardShow: $height")
-                flRemoteMenu.visibility = View.GONE
-                canvas.updateSpiceResolvingPower(canvas.width, canvas.height - height)
+        ViewOperateUtil.softKeyBoardListener(this, object : SoftKeyBoardListener {
+            override fun hideKeyBoard(keyboardHeight: Int) {
+                Log.i(TAG, "hideKeyBoard: $keyboardHeight")
+                keyBoardIsShow = false
+                flRemoteMenu.visibility = View.VISIBLE
+                canvas.updateKeyboardHeight(0)
+//                canvas.recoverySpiceResolvingPower()
             }
 
-            override fun keyBoardHide(height: Int) {
-//                Log.i(TAG, "keyBoardHide: $height")
-                flRemoteMenu.visibility = View.VISIBLE
-                canvas.recoverySpiceResolvingPower()
+            override fun showKeyBoard(keyboardHeight: Int) {
+                Log.i(TAG, "showKeyBoard: $keyboardHeight")
+                keyBoardIsShow = true
+                flRemoteMenu.visibility = View.GONE
+                canvas.updateKeyboardHeight(keyboardHeight)
+//                canvas.updateSpiceResolvingPower(canvas.width, canvas.height - keyboardHeight)
             }
         })
-        if (KSpice.sysRunEnv) {
+        val sp = KSpice.getSpiceConfigSP(this)
+        if (sp.getBoolean(KSpice.SYSTEM_RUN_ENV, false)) {
             zoomControls.setOnZoomInClickListener { canvas.canvasZoomIn() }
             zoomControls.setOnZoomOutClickListener { canvas.canvasZoomOut() }
         } else {
             zoomControls.hide()
         }
-
     }
 
     private fun createLoading() {
@@ -103,14 +107,21 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     private fun showKeyboard() {
         val inputMgr: InputMethodManager =
             getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        val showSoftInput = inputMgr.showSoftInput(window.decorView, 0)
-        if (!showSoftInput) {
-            Toast.makeText(
-                canvas.context,
-                getString(R.string.the_system_has_no_keyboard),
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+        inputMgr.toggleSoftInputFromWindow(
+            window.decorView.windowToken,
+            InputMethodManager.SHOW_FORCED,
+            InputMethodManager.SHOW_FORCED
+        )
+        //检测系统是否有键盘
+        canvas.postDelayed({
+            if (!keyBoardIsShow) {
+                Toast.makeText(
+                    canvas.context,
+                    getString(R.string.the_system_has_no_keyboard),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }, 1000)
     }
 
 
@@ -129,14 +140,14 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             KMessageEvent.SPICE_CONNECT_TIMEOUT -> {
                 messageEvent.msg?.let {
                     canvas.close()
-                    dialogHint(it, true)
+                    dialogHint(it)
                 }
             }
             //失败原因：1、连接失败   2、连接超时  3、远程被断开
             KMessageEvent.SPICE_CONNECT_FAILURE -> {
                 messageEvent.msg?.let {
                     canvas.close()
-                    dialogHint(it, false)
+                    dialogHint(it)
                 }
             }
             else -> Log.i("MessageEvent", "eventBus: 其他")
@@ -147,7 +158,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
     /**
      * Spice连接时的dialog提示
      */
-    private fun dialogHint(message: String, isExit: Boolean) {
+    private fun dialogHint(message: String) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle(getString(R.string.error))
         builder.setMessage(message)
@@ -157,13 +168,6 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         ) { dialog, _ ->
             dialog.dismiss()
             finish()
-            if (isExit) {
-                exitProcess(0)
-                /*val intent = packageManager.getLaunchIntentForPackage(packageName)
-                intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                startActivity(intent)
-                android.os.Process.killProcess(android.os.Process.myPid())*/
-            }
         }
         if (!(alertDialog != null && alertDialog?.isShowing!!)) {
             alertDialog = builder.create()
@@ -321,6 +325,7 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         Log.i(TAG, "onDestroy: 销毁并断开连接")
         canvas.close()
         System.gc()
+        android.os.Process.killProcess(android.os.Process.myPid())
     }
 
     companion object {

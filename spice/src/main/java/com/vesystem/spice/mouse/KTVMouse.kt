@@ -51,18 +51,18 @@ class KTVMouse(context: Context, mouseOption: IMouseOperation, private val iZoom
                     return true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    Log.i(TAG, "onTouchEvent: 按下移动：X:${event.x},Y:${event.y}")
+//                    Log.i(TAG, "onTouchEvent: 按下移动：X:${event.x},Y:${event.y}")
 
                     val pdx = event.x - this.pressedX
                     val pdy = event.y - this.pressedY
                     if (event.pointerCount == 2 && kotlin.math.abs(pdx) > 5 && kotlin.math.abs(pdy) > 5) {
-                        Log.i(TAG, "onTouchEvent: 双指触摸平移画面$pdx，$pdy")
+//                        Log.i(TAG, "onTouchEvent: 双指触摸平移画面$pdx，$pdy")
                         isTranslation = true
                         iZoom.translation(pdx.toInt(), pdy.toInt())
                         return true
                     }
                     if (isDoubleDown) {
-                        Log.i(TAG, "onTouchEvent: 双指触摸平移，只松开了一个手指")
+//                        Log.i(TAG, "onTouchEvent: 双指触摸平移，只松开了一个手指")
                         return true
                     }
                     mouseOption.mouseDownMove(
@@ -75,7 +75,7 @@ class KTVMouse(context: Context, mouseOption: IMouseOperation, private val iZoom
                     return true
                 }
                 MotionEvent.ACTION_DOWN -> {
-                    Log.i(TAG, "onTouchEvent: 按下")
+//                    Log.i(TAG, "onTouchEvent: 按下")
                     this.pressedX = event.x.toInt()
                     this.pressedY = event.y.toInt()
                     mouseOption.handlerMouseEvent(
@@ -88,7 +88,7 @@ class KTVMouse(context: Context, mouseOption: IMouseOperation, private val iZoom
                     return true
                 }
                 MotionEvent.ACTION_UP -> {
-                    Log.i(TAG, "onTouchEvent: 松开")
+//                    Log.i(TAG, "onTouchEvent: 松开")
                     isDoubleDown = false//双指都松开了
                     mouseOption.releaseMouseEvent(
                         mouseX,
@@ -117,7 +117,7 @@ class KTVMouse(context: Context, mouseOption: IMouseOperation, private val iZoom
                     if (isTranslation) {
                         isTranslation = false
                         iZoom.translationAfterLimit()
-                        Log.i(TAG, "onTouchEvent: 双指触摸平移松开")
+//                        Log.i(TAG, "onTouchEvent: 双指触摸平移松开")
                         return true
                     }
                     vibrator?.vibrate(100)

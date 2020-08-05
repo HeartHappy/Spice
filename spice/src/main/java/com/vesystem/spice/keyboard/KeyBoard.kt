@@ -46,6 +46,8 @@ class KeyBoard(r: Resources) {
         return table
     }
 
+
+
     companion object {
         const val DEFAULT_LAYOUT_MAP = "layouts/English (US)"
         const val SCANCODE_SHIFT_MASK = 0x10000
@@ -55,10 +57,10 @@ class KeyBoard(r: Resources) {
             KeyEvent.META_CTRL_MASK or KeyEvent.META_META_MASK or KeyEvent.META_CAPS_LOCK_ON
 
         //window键盘对应key
-        val KEY_WIN_SHIFT = 42
-        val KEY_WIN_ALT = 56
-        val KEY_WIN_TAB = 15
-        val KEY_WIN_CTRL = 29
+        const val KEY_WIN_SHIFT = 42
+        const val KEY_WIN_ALT = 56
+        const val KEY_WIN_TAB = 15
+        const val KEY_WIN_CTRL = 29
         const val KEY_WIN_CENTER_ENTER = 28
 
     }
