@@ -39,16 +39,14 @@ class MainActivity : AppCompatActivity() {
                 etConnPwd.text.toString()
             )
                 .sound(true)
+                .isAdjust(true)
                 .resolution(
                     etConnWidth.text.toString().toInt(),
                     etConnHeight.text.toString().toInt()
                 )
                 .mouseMode(KSpice.Companion.MouseMode.MODE_CLICK)
                 .start(this.applicationContext)
-
         }
-
-
     }
 
 
@@ -69,10 +67,6 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         unregisterReceiver(connectReceiver)
     }
-    /* override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-         Log.i("TAG", "dispatchTouchEvent: ${ev.actionMasked}")
-         return true
-     }*/
 
 
     class ConnectReceiver : BroadcastReceiver() {

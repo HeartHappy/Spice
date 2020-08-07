@@ -155,7 +155,7 @@
                 android:layout_width="@dimen/dp_20"
                 android:layout_height="@dimen/dp_20"
                 android:rotation="90"
-                android:src="@mipmap/jiep" />
+                android:src="@mipmap/screenshot" />
         </LinearLayout>
 
         <LinearLayout

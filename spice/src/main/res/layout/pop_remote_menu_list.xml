@@ -11,24 +11,23 @@
     <!--<TextView
         android:id="@+id/session_touch_pointer"
         style="@style/style_bvnc_float_btn_item"
-        android:drawableStart="@mipmap/iconck"
-        android:drawableLeft="@mipmap/iconck"
+        android:drawableStart="@mipmap/input_mode"
+        android:drawableLeft="@mipmap/input_mode"
         android:text="@string/operator_mode" />-->
 
     <TextView
         android:id="@+id/session_sys_keyboard"
         style="@style/style_bvnc_float_btn_item"
-        android:text="@string/sys_key"
-        android:textSize="@dimen/sp_12" />
+        android:text="@string/sys_key" />
+
+    <TextView
+        android:id="@+id/session_setting"
+        style="@style/style_bvnc_float_btn_item"
+        android:text="@string/desktop_setting" />
 
     <TextView
         android:id="@+id/session_disconnect"
         style="@style/style_bvnc_float_btn_item"
-        android:text="@string/disconnect"
-        android:textSize="@dimen/sp_12" />
+        android:text="@string/disconnect" />
 
-    <!-- <TextView
-         android:id="@+id/tvZoom"
-         style="@style/style_bvnc_float_btn_item"
-         android:text="@string/zoom" />-->
 </LinearLayout>

@@ -672,5 +672,11 @@ aSPICE对应的功能如下：
     <string name="disconnect" translatable="false">断开连接</string>
     <string name="zoom" translatable="false">缩放操作</string>
     <string name="the_system_has_no_keyboard" translatable="false">系统没有自带软键盘，请插入物理键盘操作！</string>
+    <string name="desktop_setting">桌面设置</string>
+    <string name="open_key_is_adj_resolving">弹出键盘调屏</string>
+    <string name="is">是</string>
+    <string name="no">否</string>
+    <string name="touch_move">触摸移动</string>
+    <string name="touch_screen_click">触屏点击</string>
 
 </resources>

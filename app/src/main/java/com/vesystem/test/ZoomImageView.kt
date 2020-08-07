@@ -12,7 +12,7 @@ import androidx.appcompat.widget.AppCompatImageView
  * @author ChenRui
  * ClassDescription:
  */
-class ZoomImageView(context: Context?, attrs: AttributeSet?) : AppCompatImageView(context, attrs) {
+class ZoomImageView(context: Context?, attrs: AttributeSet?) : AppCompatImageView(context!!, attrs) {
     var bitmap: Bitmap = BitmapFactory.decodeResource(resources, R.mipmap.bg)
     private var bitmapMatrix: Matrix? = null
     private var scaleFactor: Float = 1f

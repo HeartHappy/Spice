@@ -61,6 +61,8 @@ class KeyBoard(r: Resources) {
         const val KEY_WIN_ALT = 56
         const val KEY_WIN_TAB = 15
         const val KEY_WIN_CTRL = 29
+        const val KEY_WIN_ESC = 1
+        const val KEY_WIN = 347
         const val KEY_WIN_CENTER_ENTER = 28
 
     }

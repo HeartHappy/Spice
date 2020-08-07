@@ -2,30 +2,34 @@
 
 package com.vesystem.spice.ui
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.InputDevice
-import android.view.KeyEvent
-import android.view.View
-import android.view.WindowManager
+import android.view.*
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
+import androidx.appcompat.widget.PopupMenu
 import com.vesystem.spice.R
 import com.vesystem.spice.keyboard.KeyBoard
+import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN
+import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_ALT
 import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_CENTER_ENTER
+import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_CTRL
+import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_ESC
 import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_SHIFT
+import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_TAB
 import com.vesystem.spice.keyboard.KeyBoard.Companion.SCANCODE_SHIFT_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_MASK
 import com.vesystem.spice.keyboard.KeyBoard.Companion.UNICODE_META_MASK
 import com.vesystem.spice.model.KMessageEvent
 import com.vesystem.spice.model.KSpice
-import com.vesystem.spice.ui.interfaces.IPopMenuItemListener
 import com.vesystem.spice.ui.interfaces.SoftKeyBoardListener
-import com.vesystem.spice.ui.pop.KPopMenuList
 import com.vesystem.spice.utils.ViewOperateUtil
 import kotlinx.android.synthetic.main.activity_remote_canvas.*
 import org.greenrobot.eventbus.EventBus
@@ -42,11 +46,11 @@ import org.greenrobot.eventbus.ThreadMode
  * 2、处理其他view的事件
  * 3、键盘的交互
  */
-class KRemoteCanvasActivity : Activity(), View.OnClickListener {
+class KRemoteCanvasActivity : Activity() {
     private var keyBoard: KeyBoard? = null //自定义物理键盘
     private var dialog: ProgressDialog? = null //连接时的加载dialog
     private var alertDialog: AlertDialog? = null //连接信息提示
-    private var popMenuList: KPopMenuList? = null//菜单弹出列表Pop
+    private var popupMenu: PopupMenu? = null//菜单弹出列表Pop
     private var keyBoardIsShow: Boolean = false//键盘是否显示
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,37 +61,107 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             EventBus.getDefault().register(this)
         }
         initView()
+        initMenuEvent()
+        initSoftKeyboardEvent()
+        initSpecialKeyboardEvent()
         createLoading()
     }
 
-
     private fun initView() {
-        flRemoteMenu.setOnClickListener(this)
-        ViewOperateUtil.softKeyBoardListener(this, object : SoftKeyBoardListener {
-            override fun hideKeyBoard(keyboardHeight: Int) {
-                Log.i(TAG, "hideKeyBoard: $keyboardHeight")
-                keyBoardIsShow = false
-                flRemoteMenu.visibility = View.VISIBLE
-                canvas.updateKeyboardHeight(0)
-//                canvas.recoverySpiceResolvingPower()
-            }
-
-            override fun showKeyBoard(keyboardHeight: Int) {
-                Log.i(TAG, "showKeyBoard: $keyboardHeight")
-                keyBoardIsShow = true
-                flRemoteMenu.visibility = View.GONE
-                canvas.updateKeyboardHeight(keyboardHeight)
-//                canvas.updateSpiceResolvingPower(canvas.width, canvas.height - keyboardHeight)
-            }
-        })
-        val sp = KSpice.getSpiceConfigSP(this)
-        if (sp.getBoolean(KSpice.SYSTEM_RUN_ENV, false)) {
+        //初始化TV、手机不同系统下的UI
+        if (KSpice.readKeyInBoolean(this, KSpice.SYSTEM_RUN_ENV)) {
+            zoomControls.hide()
             zoomControls.setOnZoomInClickListener { canvas.canvasZoomIn() }
             zoomControls.setOnZoomOutClickListener { canvas.canvasZoomOut() }
         } else {
             zoomControls.hide()
         }
     }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun initMenuEvent() {
+        //菜单按钮相关事件
+        flRemoteMenu.postDelayed({
+            moveMenuButton()
+        }, 3000)
+        flRemoteMenu.setOnTouchListener { v, event ->
+            val moveView = ViewOperateUtil.moveView(v, event)
+            if (moveView && event.action == MotionEvent.ACTION_UP) {
+                showDetailListMenu(v)
+            }
+            true
+        }
+    }
+
+    /**
+     * 系统键盘相关事件
+     */
+    private fun initSoftKeyboardEvent() {
+
+        ViewOperateUtil.setSoftKeyBoardListener(this, object : SoftKeyBoardListener {
+
+            override fun showKeyBoard(keyboardHeight: Int) {
+                keyBoardIsShow = true
+                flRemoteMenu.visibility = View.GONE
+                //如果是手机端、显示特殊键盘
+                if (KSpice.readKeyInBoolean(applicationContext, KSpice.SYSTEM_RUN_ENV)) {
+                    llSpecialKeyboard.translationY = -keyboardHeight.toFloat()
+                    val animator = ObjectAnimator.ofFloat(llSpecialKeyboard, "alpha", 0f, 1f)
+                    animator.addListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            canvas.updateKeyboardHeight(keyboardHeight + llSpecialKeyboard.height)
+                        }
+                    })
+                    animator.setDuration(500).start()
+                    llSpecialKeyboard.visibility = View.VISIBLE
+
+                } else {
+                    canvas.updateKeyboardHeight(keyboardHeight)
+                }
+            }
+
+            override fun hideKeyBoard(keyboardHeight: Int) {
+                Log.i(TAG, "hideKeyBoard: 隐藏软键盘")
+                keyBoardIsShow = false
+                flRemoteMenu.visibility = View.VISIBLE
+                if (KSpice.readKeyInBoolean(applicationContext, KSpice.SYSTEM_RUN_ENV)) {
+                    llSpecialKeyboard.translationY = 0f
+                    llSpecialKeyboard.visibility = View.GONE
+                }
+                canvas.updateKeyboardHeight(0)
+            }
+        })
+    }
+
+    /**
+     * 特殊键盘相关事件
+     */
+    private fun initSpecialKeyboardEvent() {
+        //单独发送按下、松开事件
+        btnTab.setOnClickListener {
+            sendKey(KEY_WIN_TAB, true)
+            sendKey(KEY_WIN_TAB, false)
+        }
+        btnEsc.setOnClickListener {
+            sendKey(KEY_WIN_ESC, true)
+            sendKey(KEY_WIN_ESC, false)
+            resetSpecialKeyboard()
+        }
+        //点击只发送按下，再次点击才松开
+        btnSuper.setOnClickListener {
+            selectOrReleaseSpecialKeyboard(btnSuper, KEY_WIN)
+        }
+        btnShift.setOnClickListener {
+            selectOrReleaseSpecialKeyboard(btnShift, KEY_WIN_SHIFT)
+        }
+        btnCtrl.setOnClickListener {
+            selectOrReleaseSpecialKeyboard(btnCtrl, KEY_WIN_CTRL)
+        }
+        btnAlt.setOnClickListener {
+            selectOrReleaseSpecialKeyboard(btnAlt, KEY_WIN_ALT)
+        }
+    }
+
 
     private fun createLoading() {
         dialog = ProgressDialog.show(
@@ -113,16 +187,19 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
             InputMethodManager.SHOW_FORCED
         )
         //检测系统是否有键盘
-        canvas.postDelayed({
-            if (!keyBoardIsShow) {
-                Toast.makeText(
-                    canvas.context,
-                    getString(R.string.the_system_has_no_keyboard),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }, 1000)
+//        canvas.postDelayed(runnable, 1000)
     }
+
+    //监听是否有键盘
+    /*val runnable = {
+        if (!keyBoardIsShow) {
+            Toast.makeText(
+                canvas.context,
+                getString(R.string.the_system_has_no_keyboard),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }*/
 
 
     /**
@@ -186,6 +263,11 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
         }
 
         val isDown = event.action == KeyEvent.ACTION_DOWN
+        //处理键盘菜单按钮
+        if (event.keyCode == KeyEvent.KEYCODE_MENU && !isDown) {
+            showDetailListMenu(flRemoteMenu)
+            return true
+        }
 
         //解决右键弹出菜单问题
         if (event.keyCode == KeyEvent.KEYCODE_BACK && event.source == InputDevice.SOURCE_MOUSE) {
@@ -266,10 +348,15 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
                     return true
                 }
                 sendKey(sendCode, isDown)
+                if (!isDown) {
+                    //重置特殊键盘按下的特殊键
+                    resetSpecialKeyboard()
+                }
             }
         }
         return true
     }
+
 
     /**
      * 发送键盘key指令
@@ -280,41 +367,132 @@ class KRemoteCanvasActivity : Activity(), View.OnClickListener {
 
 
     /**
-     * 菜单按钮的点击事件
+     * 选中或释放特殊键盘win、shift、ctrl、alt
      */
-    override fun onClick(v: View?) {
-        v?.let { it ->
-            if (it.id == R.id.flRemoteMenu) {
-                showOrHide(v, 0f, View.GONE)
-                popMenuList ?: let {
-                    popMenuList = KPopMenuList(this, object : IPopMenuItemListener {
-                        override fun onClickSystemKeyboard() {
-                            showOrHide(v, 1f, View.VISIBLE)
-                            showKeyboard()
-                        }
+    private fun selectOrReleaseSpecialKeyboard(view: View, keyCode: Int) {
+        view.isSelected = !view.isSelected
+        sendKey(keyCode, view.isSelected)
+    }
 
-                        override fun onClickDisconnect() {
-                            showOrHide(v, 1f, View.VISIBLE)
-                            finish()
-                        }
+    /**
+     * 重置所有已经被选中的特殊键盘
+     */
+    private fun resetSpecialKeyboard() {
+        resetSpecialKeyboardByViewId(btnSuper, KEY_WIN)
+        resetSpecialKeyboardByViewId(btnCtrl, KEY_WIN_CTRL)
+        resetSpecialKeyboardByViewId(btnShift, KEY_WIN_SHIFT)
+        resetSpecialKeyboardByViewId(btnAlt, KEY_WIN_ALT)
+    }
 
-                        override fun onDismiss() {
-                            showOrHide(v, 1f, View.VISIBLE)
-                        }
-                    })
-                }
-                popMenuList?.let { pop ->
-                    if (!pop.isShowing) {
-                        pop.showAsDropDown(v, 0, 0)
-                    }
-                }
-            }
+    /**
+     * 重置特殊键盘根据view的id
+     */
+    private fun resetSpecialKeyboardByViewId(
+        linearLayout: View,
+        keyCode: Int
+    ) {
+        if (linearLayout.isSelected) {
+            linearLayout.isSelected = !linearLayout.isSelected
+            sendKey(keyCode, false)
         }
     }
 
-    private fun showOrHide(v: View, value: Float, visibility: Int) {
+    /**
+     * 显示详细菜单列表
+     */
+    private fun showDetailListMenu(v: View) {
+        showOrHideButton(v, 0f)
+        //val wrapper: Context =ContextThemeWrapper(this, R.style.MyPopupStyle)
+        //1.实例化PopupMenu
+        popupMenu ?: let {
+            popupMenu = PopupMenu(this, v)
+            //2、加载xml
+            popupMenu?.inflate(R.menu.desktop_menu)
+            //3.为弹出菜单设置点击监听
+            popupMenu?.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.disconnect -> {
+                        finish()
+                        true
+                    }
+                    R.id.system_keyboard -> {
+                        showKeyboard()
+                        true
+                    }
+                    R.id.is_adjust -> {
+                        KSpice.writeValueToKey(this, KSpice.IS_ADJUST, true)
+                        true
+                    }
+                    R.id.no_adjust -> {
+                        KSpice.writeValueToKey(this, KSpice.IS_ADJUST, false)
+                        true
+                    }
+                    R.id.touch_mode -> {
+                        KSpice.writeValueToKey(
+                            this,
+                            KSpice.MOUSE_MODE,
+                            KSpice.Companion.MouseMode.MODE_TOUCH.toString()
+                        )
+                        canvas.updateMouseMode()
+                        true
+                    }
+                    R.id.click_mode -> {
+                        KSpice.writeValueToKey(
+                            this,
+                            KSpice.MOUSE_MODE,
+                            KSpice.Companion.MouseMode.MODE_CLICK.toString()
+                        )
+                        canvas.updateMouseMode()
+                        true
+                    }
+                    else -> {
+                        false
+                    }
+                }
+            }
+            //4、设置关闭监听
+            popupMenu?.setOnDismissListener {
+                showOrHideButton(v, 1f)
+            }
+        }
+
+        //5、读取本地配置属性，并显示UI
+        if (KSpice.readKeyInBoolean(this, KSpice.IS_ADJUST)) {
+            val itemIsAdjust = popupMenu?.menu?.findItem(R.id.is_adjust)
+            itemIsAdjust?.isChecked = true
+        } else {
+            val itemNoAdjust = popupMenu?.menu?.findItem(R.id.no_adjust)
+            itemNoAdjust?.isChecked = true
+        }
+        //6、读取本地运行环境配置，显示不同UI
+        if (KSpice.readKeyInBoolean(this, KSpice.SYSTEM_RUN_ENV)) {
+            val itemInputMode = popupMenu?.menu?.findItem(R.id.input_mode)
+            itemInputMode?.isVisible = true
+            if (KSpice.readKeyInString(
+                    this,
+                    KSpice.MOUSE_MODE
+                ) == KSpice.Companion.MouseMode.MODE_CLICK.toString()
+            ) {
+                val itemClickMode = popupMenu?.menu?.findItem(R.id.click_mode)
+                itemClickMode?.isChecked = true
+            } else {
+                val itemTouchMode = popupMenu?.menu?.findItem(R.id.touch_mode)
+                itemTouchMode?.isChecked = true
+            }
+        }
+
+        //7.显示弹出菜单
+        popupMenu?.show()
+    }
+
+    private fun moveMenuButton() {
+        flRemoteMenu.animate()
+            .translationX((resources.getDimensionPixelSize(R.dimen.dp_40) + flRemoteMenu.width / 2).toFloat())
+            .start()
+    }
+
+    private fun showOrHideButton(v: View, value: Float) {
         v.animate().alpha(value).start()
-        v.visibility = visibility
     }
 
     override fun onDestroy() {

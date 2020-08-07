@@ -24,7 +24,7 @@
         android:id="@+id/etConnPwd"
         style="@style/style_et"
         android:hint="@string/conn_pwd"
-        android:text="iujmg7vped" />
+        android:text="lsmg1tiwfu" />
 
     <EditText
         android:id="@+id/etConnWidth"

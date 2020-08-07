@@ -9,11 +9,15 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Build
 import android.util.Log
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
+import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
 import com.vesystem.spice.ui.interfaces.SoftKeyBoardListener
+
 
 /**
  * Created Date 2019-07-30.
@@ -21,9 +25,10 @@ import com.vesystem.spice.ui.interfaces.SoftKeyBoardListener
  * @author RayChen
  * ClassDescription：View操作工具类
  */
-class ViewOperateUtil private constructor() {
+class ViewOperateUtil {
 
     companion object {
+        private var gestureDetector: GestureDetector? = null
         private var rootViewVisibleHeight = 0 //纪录根视图的显示高度 = 0
 
         /**
@@ -48,6 +53,10 @@ class ViewOperateUtil private constructor() {
             return rectF.contains(x.toFloat(), y.toFloat())
         }
 
+
+        /**
+         * 查找View在窗孔中所在位置
+         */
         fun findViewLocation(view: View): RectF {
             val location = IntArray(2)
             view.getLocationOnScreen(location)
@@ -58,40 +67,76 @@ class ViewOperateUtil private constructor() {
             )
         }
 
-        fun softKeyBoardListener(
-            activity: Activity,
-            softKeyBoardListener: SoftKeyBoardListener
-        ) {
-            val rootView = activity.window.decorView.rootView
-            //        final View rootView = activity.findViewById(android.R.id.content);
-            rootView.viewTreeObserver.addOnGlobalLayoutListener(OnGlobalLayoutListener {
-                val r = Rect()
-                rootView.getWindowVisibleDisplayFrame(r)
-                val visibleHeight = r.height()
-                if (rootViewVisibleHeight == 0) {
-                    rootViewVisibleHeight = visibleHeight
-                    return@OnGlobalLayoutListener
-                }
 
-                //根视图显示高度没有变化，可以看作软键盘显示／隐藏状态没有改变
-                if (rootViewVisibleHeight == visibleHeight) {
-                    return@OnGlobalLayoutListener
-                }
+        /**
+         * view随触摸、鼠标事件移动
+         */
+        @Suppress("DEPRECATION")
+        fun moveView(view: View, event: MotionEvent): Boolean {
+            gestureDetector?.let {
+                return it.onTouchEvent(event)
+            } ?: let {
+                gestureDetector = GestureDetector(object :
+                    GestureDetector.SimpleOnGestureListener() {
 
-                //根视图显示高度变小超过300，可以看作软键盘显示了，该数值可根据需要自行调整
-                if (rootViewVisibleHeight - visibleHeight > 200) {
-                    softKeyBoardListener.showKeyBoard(rootViewVisibleHeight - visibleHeight)
-                    rootViewVisibleHeight = visibleHeight
-                    return@OnGlobalLayoutListener
-                }
+                    override fun onSingleTapUp(e: MotionEvent?): Boolean {
+                        Log.i("GestureDetector", "onSingleTapUp: ")
+                        return true
+                    }
 
-                //根视图显示高度变大超过300，可以看作软键盘隐藏了，该数值可根据需要自行调整
-                if (visibleHeight - rootViewVisibleHeight > 200) {
-                    softKeyBoardListener.hideKeyBoard(visibleHeight - rootViewVisibleHeight)
-                    rootViewVisibleHeight = visibleHeight
-                }
-            })
+                    override fun onDown(e: MotionEvent?): Boolean {
+                        Log.i("GestureDetector", "onDown: ")
+                        view.alpha = 1f
+                        return true
+                    }
+
+                    override fun onScroll(
+                        e1: MotionEvent,
+                        e2: MotionEvent,
+                        distanceX: Float,
+                        distanceY: Float
+                    ): Boolean {
+                        val moveX = e2.x - e1.x
+                        val moveY = e2.y - e1.y
+                        setFathersMeasureChildLocation(
+                            view,
+                            view.left + moveX.toInt(),
+                            view.top + moveY.toInt(),
+                            view.right + moveX.toInt(),
+                            view.bottom + moveY.toInt()
+                        )
+//                      view.layout(l,t,r,b)  该方法只更新了孩子得位置，但是父view绘制孩子得时候，还是原有得，一旦父view发生刷新，孩子就会出现还原得问题
+                        return true
+                    }
+
+                    override fun onLongPress(e: MotionEvent?) {
+                    }
+                })
+                gestureDetector?.onTouchEvent(event)
+                return true
+            }
         }
+
+
+        /**
+         * 设置父亲测量孩子得位置，解决孩子view发生位置改变，父view刷新时，孩子view被还原问题
+         */
+        private fun setFathersMeasureChildLocation(
+            view: View,
+            left: Int,
+            top: Int,
+            right: Int,
+            bottom: Int
+        ) {
+            val params = FrameLayout.LayoutParams(right - left, bottom - top)
+            val parent = view.parent
+            val p = parent as View
+            val marginRight = p.width - right
+            val marginBottom = p.height - bottom
+            params.setMargins(left, top, marginRight, marginBottom)
+            view.layoutParams = params
+        }
+
 
         /**
          * 创建Activity揭露动画(注意：该Activity主题样式要设置为window背景透明，theme:WindowTransparentTheme)
@@ -113,7 +158,6 @@ class ViewOperateUtil private constructor() {
             val decorView = activity.window.decorView
             val viewById =
                 decorView.findViewById<View>(R.id.content)
-            val intent = activity.intent
             decorView.post {
                 val widthPixels = activity.resources.displayMetrics.widthPixels
                 val heightPixels = activity.resources.displayMetrics.heightPixels
@@ -164,6 +208,38 @@ class ViewOperateUtil private constructor() {
                     context.finish()
                 }
             })
+        }
+
+        var isVisibleForLast = false
+
+        /**
+         * 软键盘显示、隐藏监听，并返回键盘高度
+         */
+        fun setSoftKeyBoardListener(
+            activity: Activity,
+            softKeyBoardListener: SoftKeyBoardListener
+        ) {
+            val rootView = activity.window.decorView.rootView
+            //        final View rootView = activity.findViewById(android.R.id.content);
+            rootView.viewTreeObserver.addOnGlobalLayoutListener {
+                val r = Rect()
+                rootView.getWindowVisibleDisplayFrame(r)
+                //计算出可见屏幕的高度
+                val displayHeight: Int = r.height()
+                //获得屏幕整体的高度
+                val height: Int = rootView.height
+                //获得键盘高度
+                val keyboardHeight = height - displayHeight
+                val visible = displayHeight.toDouble() / height < 0.8
+                if (visible != isVisibleForLast) {
+                    if (visible) {
+                        softKeyBoardListener.showKeyBoard(keyboardHeight)
+                    } else {
+                        softKeyBoardListener.hideKeyBoard(keyboardHeight)
+                    }
+                }
+                isVisibleForLast = visible
+            }
         }
 
     }

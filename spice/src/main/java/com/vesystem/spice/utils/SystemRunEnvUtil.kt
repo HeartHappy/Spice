@@ -13,7 +13,7 @@ import android.view.WindowManager
  * Created Date 2020/4/16.
  *
  * @author ChenRui
- * ClassDescription：检测Android系统运行环境，TV或手机
+ * ClassDescription：检测Android系统运行环境，TV或手机。true:手机 false：电视
  */
 object SystemRunEnvUtil {
     /**

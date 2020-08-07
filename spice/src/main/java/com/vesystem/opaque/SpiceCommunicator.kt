@@ -107,14 +107,11 @@ class SpiceCommunicator(context: Context) {
     fun disconnect() {
         SpiceClientDisconnect()
         Log.i(TAG, "disconnect: spiceConnect 断开 Spice连接，并滞空")
-       /* if (spiceConnect != null) {
-            spiceConnect = null
-        }*/
         myself?.clear()
     }
 
     fun sendSpiceKeyEvent(keyDown: Boolean, virtualKeyCode: Int) {
-//        Log.i(TAG, "sendSpiceKeyEvent: down: " + keyDown + " code: " + virtualKeyCode);
+        Log.i(TAG, "sendSpiceKeyEvent: down: $keyDown code: $virtualKeyCode")
         SpiceKeyEvent(keyDown, virtualKeyCode)
     }
 

@@ -12,7 +12,10 @@ import kotlin.properties.Delegates
 /**
  * Created Date 2020/7/15.
  * @author ChenRui
- * ClassDescription:连接bean
+ * ClassDescription:主要负责
+ * 1、链式构建
+ * 2、本地存储
+ * 3、本地读取
  */
 class KSpice {
 
@@ -22,27 +25,36 @@ class KSpice {
         private const val tPort = "-1"
         private var password: String by Delegates.notNull()
         private var cf: String by Delegates.notNull()
-
-        //        internal val ca: String? = null
-//        internal const val cs: String = ""
         private var sound: Boolean = false
         private var resolutionWidth = 0//分辨率宽
         private var resolutionHeight = 0//分辨率高
-        private var sysRunEnv = false
+        private var sysRunEnv = false  //true :手机  false：TV
         private var mouseMode = MouseMode.MODE_CLICK//默认操作模式，点击
+        private var isAdjust = true//默认弹出键盘调整分辨率
 
 
         internal const val SPICE_CONFIG = "SpiceConfig"
+
+        //连接配置
         internal const val IP = "IP"
         internal const val PORT = "PORT"
         internal const val TPort = "TPort"
         internal const val PASSWORD = "PASSWORD"
         internal const val CF = "CF"
         internal const val SOUND = "SOUND"
+
+        //设置相关配置
         internal const val MOUSE_MODE = "MOUSE_MODE"
+
+        //系统配置
         internal const val SYSTEM_RUN_ENV = "SYSTEM_RUN_ENV"
+
+        //分辨率配置
         internal const val RESOLUTION_WIDTH = "RESOLUTION_WIDTH"
         internal const val RESOLUTION_HEIGHT = "RESOLUTION_HEIGHT"
+
+        //弹出键盘是否调整分辨率
+        internal const val IS_ADJUST = "IS_ADJUST"
 
         const val ACTION_SPICE_CONNECT_SUCCEED = "ACTION_SPICE_CONNECT_SUCCEED"//spice连接成功通知Action
 
@@ -65,6 +77,11 @@ class KSpice {
             return this
         }
 
+        fun isAdjust(isAdjust: Boolean): Companion {
+            this.isAdjust = isAdjust
+            return this
+        }
+
         fun mouseMode(mode: MouseMode): Companion {
             this.mouseMode = mode
             return this
@@ -84,9 +101,8 @@ class KSpice {
                 if (kotlin.math.abs(resolutionHeight) > heightPixels) heightPixels else kotlin.math.abs(
                     resolutionHeight
                 )
-
             val sp = getSpiceConfigSP(context)
-            whiteSharedPreferences(sp)
+            writeSharedPreferences(sp)
 
             System.gc()
             val intent = Intent(context, KRemoteCanvasActivity::class.java)
@@ -95,12 +111,43 @@ class KSpice {
         }
 
 
-        fun getSpiceConfigSP(context: Context): SharedPreferences {
+        private fun getSpiceConfigSP(context: Context): SharedPreferences {
             return context.getSharedPreferences(SPICE_CONFIG, Context.MODE_PRIVATE)
         }
 
 
-        private fun whiteSharedPreferences(sp: SharedPreferences) {
+        fun readKeyInInt(context: Context, key: String): Int {
+            return getSpiceConfigSP(context).getInt(key, 0)
+
+        }
+
+        fun readKeyInString(context: Context, key: String): String? {
+            return getSpiceConfigSP(context).getString(key, "")
+
+        }
+
+        fun readKeyInBoolean(context: Context, key: String): Boolean {
+            return getSpiceConfigSP(context).getBoolean(key, false)
+        }
+
+        fun writeValueToKey(context: Context, key: String, value: Any) {
+            val edit = getSpiceConfigSP(context).edit()
+            when (value) {
+                is String -> {
+                    edit.putString(key, value)
+                }
+                is Int -> {
+                    edit.putInt(key, value)
+                }
+                is Boolean -> {
+                    edit.putBoolean(key, value)
+                }
+            }
+            edit.apply()
+        }
+
+
+        private fun writeSharedPreferences(sp: SharedPreferences) {
             val edit = sp.edit()
             edit.putString(IP, ip)
             edit.putString(PORT, port)
@@ -113,6 +160,7 @@ class KSpice {
             edit.putInt(RESOLUTION_WIDTH, resolutionWidth)
             edit.putInt(RESOLUTION_HEIGHT, resolutionHeight)
             edit.putString(MOUSE_MODE, mouseMode.toString())
+            edit.putBoolean(IS_ADJUST, isAdjust)
             edit.apply()
         }
 
