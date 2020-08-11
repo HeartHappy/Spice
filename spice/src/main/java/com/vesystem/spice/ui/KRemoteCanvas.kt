@@ -1,7 +1,6 @@
 package com.vesystem.spice.ui
 
 import android.animation.Animator
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
@@ -9,7 +8,6 @@ import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.util.AttributeSet
 import android.util.Log
-import android.view.MotionEvent
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageView
 import com.vesystem.opaque.SpiceCommunicator
@@ -39,6 +37,7 @@ import org.greenrobot.eventbus.EventBus
 import java.lang.ref.WeakReference
 import kotlin.math.abs
 
+
 /**
  * Created Date 2020/7/6.
  * @author ChenRui
@@ -58,15 +57,15 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     private var canvasBitmap: Bitmap? = null
     private var cursorBitmap: Bitmap? = null
     private var myHandler: Handler? = null
-    private var ktvMouse: KMouse? = null
+    internal var ktvMouse: KMouse? = null
     private var bitmapMatrix: Matrix = Matrix()
     private var bitmapWidth = 0
     private var bitmapHeight = 0
     private var cursorMatrix: Matrix? = null
     private var isConnectFail = false
     private var connectFailCount = 0
-    private var dx = 0//画布距离屏幕偏移量
-    private var dy = 0
+    internal var dx = 0//画布距离屏幕偏移量
+    internal var dy = 0
     private var scaleFactor: Float = 1f
     private var visibleRect = Rect()
     private var viewRect = Rect()
@@ -261,6 +260,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
         invalidate()
     }
 
+
     /**
      * 调整为键盘显示时的分辨率
      */
@@ -422,21 +422,21 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     /**
      * 监听鼠标按下时得移动
      */
-    @SuppressLint("ClickableViewAccessibility")
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        ktvMouse?.onTouchEvent(event, dx, dy)
-        return true
-    }
+    /* @SuppressLint("ClickableViewAccessibility")
+     override fun onTouchEvent(event: MotionEvent): Boolean {
+         ktvMouse?.onTouchEvent(event, dx, dy)
+         return true
+     }*/
 
     /**
      * 鼠标移动、按下、松开、中间键滚动
      */
-    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+    /*override fun onGenericMotionEvent(event: MotionEvent): Boolean {
         ktvMouse?.let {
             return it.onTouchEvent(event, dx, dy)
         }
         return super.onGenericMotionEvent(event)
-    }
+    }*/
 
     /**
      * 处理鼠标按下事件
@@ -483,6 +483,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      */
     override fun mouseMove(x: Int, y: Int, metaState: Int, mouseType: Int, isMove: Boolean) {
         computeMatrixOffsetY(y)
+        Log.i(TAG, "mouseMove: $x,$y")
         spiceCommunicator?.writePointerEvent(
             x, y, metaState,
             mouseType, isMove
@@ -596,6 +597,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
             offsetTopAndBottom(height - visibleRect.bottom)
         }
     }
+
 
     /**
      * 断开spice连接并取消协程

@@ -117,7 +117,7 @@
     <string name="enter_text_title">输入发送用文字</string>
     <string name="error_anon_dh_unsupported">VNC服务器正在尝试使用匿名Diffie Hellman密码，但您的Android设备不支持的。如果使用GNOME的Vino VNC服务器，就可以通过在终端中运行以下命令然后重新启动来禁用AnonTLS：\" gsettings set org.gnome.Vino require-encryption false \"。如果运行x11vnc，就可以添加以下选项：\"-vencrypt nodh：only -ssl \"。</string>
     <string name="error_connection_failed">连接失败了。</string>
-    <string name="error_connection_interrupted">连接被中断了。</string>
+    <string name="error_connection_interrupted">连接被中断。</string>
     <string name="error_no_user_hostname">请输入用户名，以及主机名或IP地址。</string>
     <string name="error_out_of_memory">无法将足够的内存分配给远程屏幕的绘制。请尝试重新启动应用或者设备。您也可以尝试通过应用设置来缩小远程桌面的大小。</string>
     <string name="error_ovirt_unable_to_connect">无法连接或认证，请确认服务器地址，用户名，密码以及CA与主题。</string>
@@ -165,7 +165,7 @@
     <string name="info_cert_tunnel">是否要连接以下证书标识的主机？\n\nFingerprint: %1$s\n\nIssued to:\n%2$s\n\nIssued by:\n%3$s\n\nValid from:\n%4$s\n\nValid until:\n%5$s\n\nNote: The application does not verify certificate authorities or check for certificate revocation.</string>
     <string name="info_continue_connecting">"继续连接到："</string>
     <string name="info_encoding">"编码"</string>
-    <string name="info_progress_dialog_aborted">连接被中止了！</string>
+    <string name="info_progress_dialog_aborted">连接被中止！</string>
     <string name="info_progress_dialog_connecting">正在连接…</string>
     <string name="info_progress_dialog_downloading" tools:ignore="TypographyEllipsis">正在下载第一帧。\n请稍候...</string>
     <string name="info_progress_dialog_establishing" tools:ignore="TypographyEllipsis">正在建立握手。\n请稍候...</string>
@@ -678,5 +678,6 @@ aSPICE对应的功能如下：
     <string name="no">否</string>
     <string name="touch_move">触摸移动</string>
     <string name="touch_screen_click">触屏点击</string>
+    <string name="In_this_operation_mode_zooming_is_not_supported">该操作模式下，暂不支持缩放</string>
 
 </resources>

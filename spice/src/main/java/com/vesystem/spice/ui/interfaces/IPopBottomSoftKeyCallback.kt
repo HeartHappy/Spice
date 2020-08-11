@@ -16,5 +16,5 @@ interface IPopBottomSoftKeyCallback {
     fun onTouchUp(event: MotionEvent, keyCode: Int)
 
     //自定义底部软键盘鼠标右键回调
-    fun onMouseEvent(mouseType: Int)
+    fun onMouseEvent(isDown: Boolean)
 }

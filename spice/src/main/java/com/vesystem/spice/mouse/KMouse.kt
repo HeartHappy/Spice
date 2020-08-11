@@ -5,20 +5,21 @@ import android.content.Context
 import android.os.Vibrator
 import android.view.MotionEvent
 
+
 /**
  * Created Date 2020/7/24.
  * @author ChenRui
  * ClassDescription:
  */
-abstract class KMouse(val context: Context, val mouseOption: IMouseOperation) {
+abstract class KMouse(
+    val context: Context,
+    val mouseOption: IMouseOperation
+) {
     protected var vibrator: Vibrator? = null
     protected var isTranslation: Boolean = false//是否平移
     protected var pressedX: Int = 0 //首次按下的点x坐标
     protected var pressedY: Int = 0//首次按下的点y坐标
     protected var isDoubleDown = false//判断双指按下和双指松开
-    init {
-        vibrator = context.getSystemService(Service.VIBRATOR_SERVICE) as Vibrator
-    }
 
     var mouseX: Int = 0
         //鼠标的绝对X坐标
@@ -26,6 +27,11 @@ abstract class KMouse(val context: Context, val mouseOption: IMouseOperation) {
     var mouseY: Int = 0
         //鼠标的绝对Y坐标
         get() = if (field <= 0) 0 else if (field >= context.resources.displayMetrics.heightPixels) context.resources.displayMetrics.heightPixels - 1 else field
+
+
+    init {
+        vibrator = context.getSystemService(Service.VIBRATOR_SERVICE) as Vibrator
+    }
 
 
     fun downMouseRightButton() {

@@ -1,22 +1,25 @@
 package com.vesystem.test
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
-import android.widget.Toast
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import androidx.appcompat.widget.AppCompatImageView
+import com.vesystem.spice.mouse.KMouse
 
 /**
  * Created Date 2020/7/23.
  * @author ChenRui
  * ClassDescription:
  */
-class ZoomImageView(context: Context?, attrs: AttributeSet?) : AppCompatImageView(context!!, attrs) {
+class ZoomImageView(context: Context?, attrs: AttributeSet?) :
+    AppCompatImageView(context!!, attrs) {
     var bitmap: Bitmap = BitmapFactory.decodeResource(resources, R.mipmap.bg)
     private var bitmapMatrix: Matrix? = null
     private var scaleFactor: Float = 1f
-
     init {
 
         setBackgroundColor(Color.BLUE)
@@ -39,28 +42,11 @@ class ZoomImageView(context: Context?, attrs: AttributeSet?) : AppCompatImageVie
         }
     }
 
-
-    fun canvasZoomIn() {
-        scaleFactor += 0.5f
-//        postInvalidate()
-        scaleX = scaleFactor
-        scaleY = scaleFactor
-//        animate().scaleX(scaleFactor).scaleY(scaleFactor).start()
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        Log.i(TAG, "onTouchEvent: ${event.action}")
+        return super.onTouchEvent(event)
     }
-
-
-    fun canvasZoomOut() {
-        scaleFactor -= 0.5f
-        if (scaleFactor < 1) {
-            scaleFactor = 1f
-            Toast.makeText(context, "比例1：1", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        scaleX = scaleFactor
-        scaleY = scaleFactor
-    }
-
 
     companion object {
         private const val TAG = "ZoomImageView"

@@ -10,7 +10,7 @@ import com.vesystem.spice.zoom.IZoom
  * @author ChenRui
  * ClassDescription:TV端得鼠标操作
  */
-class KTVMouse(context: Context, mouseOption: IMouseOperation, private val iZoom: IZoom) :
+class KTVMouse(context: Context, mouseOption: IMouseOperation, iZoom: IZoom) :
     KMouse(context, mouseOption) {
 
 
@@ -58,7 +58,7 @@ class KTVMouse(context: Context, mouseOption: IMouseOperation, private val iZoom
                     if (event.pointerCount == 2 && kotlin.math.abs(pdx) > 5 && kotlin.math.abs(pdy) > 5) {
 //                        Log.i(TAG, "onTouchEvent: 双指触摸平移画面$pdx，$pdy")
                         isTranslation = true
-                        iZoom.translation(pdx.toInt(), pdy.toInt())
+//                        iZoom.translation(pdx.toInt(), pdy.toInt())
                         return true
                     }
                     if (isDoubleDown) {
@@ -116,7 +116,7 @@ class KTVMouse(context: Context, mouseOption: IMouseOperation, private val iZoom
                 MotionEvent.ACTION_POINTER_UP -> {
                     if (isTranslation) {
                         isTranslation = false
-                        iZoom.translationAfterLimit()
+//                        iZoom.translationAfterLimit()
 //                        Log.i(TAG, "onTouchEvent: 双指触摸平移松开")
                         return true
                     }

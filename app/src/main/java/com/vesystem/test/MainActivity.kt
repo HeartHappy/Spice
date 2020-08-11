@@ -33,18 +33,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun connectDesktop() {
         btnConnect.setOnClickListener {
-            KSpice.connect(
-                etConnIp.text.toString(),
-                etConnPort.text.toString(),
-                etConnPwd.text.toString()
-            )
+//            startActivity(Intent(this, ZoomActivity::class.java))
+            KSpice
+                .connect(
+                    etConnIp.text.toString(),
+                    etConnPort.text.toString(),
+                    etConnPwd.text.toString()
+                )
                 .sound(true)
-                .isAdjust(true)
+                .isAdjust(false)
                 .resolution(
                     etConnWidth.text.toString().toInt(),
                     etConnHeight.text.toString().toInt()
                 )
-                .mouseMode(KSpice.Companion.MouseMode.MODE_CLICK)
+                .mouseMode(KSpice.Companion.MouseMode.MODE_TOUCH)
                 .start(this.applicationContext)
         }
     }

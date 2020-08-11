@@ -10,6 +10,8 @@ interface IMouseOperation {
 
     /**
      * 发送鼠标事件，包括按下左键、右键、中间键上滑动、下滑动、右键。发送 key和 mask
+     * x、y:鼠标的绝对x轴坐标
+     *
      */
     fun handlerMouseEvent(
         x: Int,
@@ -22,6 +24,7 @@ interface IMouseOperation {
 
     /**
      * 鼠标按下移动
+     * x、y:鼠标的绝对x轴坐标
      */
     fun mouseDownMove(
         x: Int,
@@ -33,6 +36,7 @@ interface IMouseOperation {
 
     /**
      * 鼠标移动
+     * x、y:鼠标的绝对x轴坐标
      */
     fun mouseMove(
         x: Int,
@@ -44,6 +48,7 @@ interface IMouseOperation {
 
     /**
      * 释放鼠标事件 重置key和 mask
+     * x、y:鼠标的绝对x轴坐标
      */
     fun releaseMouseEvent(
         x: Int,

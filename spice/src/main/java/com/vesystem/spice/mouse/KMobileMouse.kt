@@ -3,6 +3,7 @@
 package com.vesystem.spice.mouse
 
 import android.content.Context
+import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import com.vesystem.spice.zoom.IZoom
@@ -20,13 +21,10 @@ class KMobileMouse(
     KMouse(context, mouseOption) {
     private var gd: GestureDetector? = null
 
-    //    private var sgd: ScaleGestureDetector? = null
 
     private var relativeX: Int = 0//原鼠标位置，绝对X坐标
     private var relativeY: Int = 0//原鼠标位置，绝对Y坐标
     private var isLongPress: Boolean = false//是否长按
-    private var dx = 0 //桌面偏移屏幕距离
-    private var dy = 0
 
 
     init {
@@ -39,8 +37,8 @@ class KMobileMouse(
                     vibrator?.vibrate(100)
                     isLongPress = true
                     mouseOption.handlerMouseEvent(
-                        mouseX - dx,
-                        mouseY - dy,
+                        mouseX,
+                        mouseY,
                         event.metaState,
                         SPICE_MOUSE_BUTTON_LEFT,
                         false
@@ -48,17 +46,16 @@ class KMobileMouse(
                 }
             }
         })
+
+
     }
 
     /**
      * dx、dy：画面距离屏幕边缘的偏移量
      */
     override fun onTouchEvent(event: MotionEvent, dx: Int, dy: Int): Boolean {
-        this.dx = dx
-        this.dy = dy
-//        Log.i(TAG, "onTouchEvent: ${event.actionMasked},${event.buttonState}")
-
 //        if (event.pointerCount == 1) {
+
         gd?.onTouchEvent(event)
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -66,13 +63,12 @@ class KMobileMouse(
                 this.pressedY = event.y.toInt()
             }
             MotionEvent.ACTION_MOVE -> {
-
                 val pdx = event.x - this.pressedX
                 val pdy = event.y - this.pressedY
                 if (event.pointerCount == 2 && kotlin.math.abs(pdx) > 5 && kotlin.math.abs(pdy) > 5) {
-//                    Log.i(TAG, "onTouchEvent: 双指触摸平移画面$pdx，$pdy")
+                    Log.i(TAG, "onTouchEvent: 双指触摸平移画面$pdx，$pdy")
                     isTranslation = true
-                    iZoom.translation(pdx.toInt(), pdy.toInt())
+//                    iZoom.translation(pdx.toInt(), pdy.toInt())
                     return true
                 }
                 if (isDoubleDown) {
@@ -82,10 +78,11 @@ class KMobileMouse(
 
                 mouseX = (event.x - this.pressedX + relativeX).toInt()
                 mouseY = (event.y - this.pressedY + relativeY).toInt()
+//                Log.i(TAG, "onTouchEvent: dX:$dx,dy:$dy,x:${mouseX},y:${mouseY}")
                 if (isLongPress) {
                     mouseOption.mouseDownMove(
-                        mouseX - dx,
-                        mouseY - dy,
+                        mouseX,
+                        mouseY,
                         event.metaState,
                         SPICE_MOUSE_BUTTON_LEFT,
                         false
@@ -96,8 +93,8 @@ class KMobileMouse(
                      )*/
                 } else {
                     mouseOption.mouseMove(
-                        mouseX - dx,
-                        mouseY - dy,
+                        mouseX,
+                        mouseY,
                         event.metaState,
                         SPICE_MOUSE_BUTTON_MOVE,
                         false
@@ -116,8 +113,8 @@ class KMobileMouse(
 //                Log.i(TAG, "onTouchEvent: 单指松开$isTranslation")
                 if (isLongPress) {
                     mouseOption.releaseMouseEvent(
-                        mouseX - dx,
-                        mouseY - dy,
+                        mouseX,
+                        mouseY,
                         0,
                         SPICE_MOUSE_BUTTON_LEFT,
                         false
@@ -129,15 +126,15 @@ class KMobileMouse(
                 //松开时小于5px代表是按下未移动
                 if (kotlin.math.abs((event.x - this.pressedX)) < 5 && kotlin.math.abs((event.y - this.pressedY)) < 5) {
                     mouseOption.handlerMouseEvent(
-                        mouseX - dx,
-                        mouseY - dy,
+                        mouseX,
+                        mouseY,
                         event.metaState,
                         SPICE_MOUSE_BUTTON_LEFT,
                         false
                     )
                     mouseOption.releaseMouseEvent(
-                        mouseX - dx,
-                        mouseY - dy,
+                        mouseX,
+                        mouseY,
                         0,
                         SPICE_MOUSE_BUTTON_LEFT,
                         false
@@ -158,13 +155,13 @@ class KMobileMouse(
                 //如果是双指拖放松开
                 if (isTranslation) {
                     isTranslation = false
-                    iZoom.translationAfterLimit()
+//                    iZoom.translationAfterLimit()
 //                    Log.i(TAG, "onTouchEvent: 双指触摸平移松开")
                     return true
                 }
                 vibrator?.vibrate(100)
-                downMouseRightButton(mouseX - dx, mouseY - dy)
-                upMouseRightButton(mouseX - dx, mouseY - dy)
+                downMouseRightButton(mouseX, mouseY)
+                upMouseRightButton(mouseX, mouseY)
 //                Log.i(TAG, "onTouchEvent: 双指屏幕固定位置松开，即右键弹出菜单")
                 return true
             }

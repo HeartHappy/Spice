@@ -3,7 +3,6 @@ package com.vesystem.spice.ui.pop
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
-import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -21,21 +20,20 @@ import com.vesystem.spice.ui.interfaces.IPopBottomSoftKeyCallback
  * @author ChenRui
  * ClassDescription：底部软键盘
  */
-class KPopBottomSoftKey(context: Context?, softKeyBoardHeight: Int) :
+class KPopBottomSoftKey(context: Context, softKeyBoardHeight: Int) :
     PopupWindow(context), OnTouchListener {
-    private var mIPopBottomSoftKeyCallback: IPopBottomSoftKeyCallback? =
-        null
+    private var mIPopBottomSoftKeyCallback: IPopBottomSoftKeyCallback? = null
 
     fun setIPopBottomSoftKeyCallback(IPopBottomSoftKeyCallback: IPopBottomSoftKeyCallback?) {
         mIPopBottomSoftKeyCallback = IPopBottomSoftKeyCallback
     }
 
+    @Suppress("DEPRECATION")
     private fun initPopProperty(view: View, softKeyBoardHeight: Int) {
-        Log.i("PopBottomSoftKey", "initPopProperty: 创建软键盘窗体高度：$softKeyBoardHeight")
+//        Log.i("PopBottomSoftKey", "initPopProperty: 创建软键盘窗体高度：$softKeyBoardHeight")
         contentView = view
         width = LinearLayout.LayoutParams.MATCH_PARENT
         height = softKeyBoardHeight
-        //        this.setInputMethodMode(android.widget.PopupWindow.INPUT_METHOD_NEEDED);  //设置Pop不压键盘，默认是会压住键盘
         //设置setBackgroundDrawable才会全屏，默认不全屏
         setBackgroundDrawable(BitmapDrawable())
         isOutsideTouchable = false
@@ -95,12 +93,11 @@ class KPopBottomSoftKey(context: Context?, softKeyBoardHeight: Int) :
         btnScreenShot.setOnTouchListener(this)
     }
 
-    //TODO 需优化为点击事件
+    //需优化为点击事件
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(v: View, event: MotionEvent): Boolean {
         if (mIPopBottomSoftKeyCallback != null) {
-            val id = v.id
-            when (id) {
+            when (v.id) {
                 R.id.btnKeyUp -> {
                     return handlerTouchEvent(event, KeyEvent.KEYCODE_DPAD_UP, v)
                 }
@@ -127,7 +124,6 @@ class KPopBottomSoftKey(context: Context?, softKeyBoardHeight: Int) :
                 }
                 R.id.btnF5 -> {
                     return handlerTouchEvent(event, KeyEvent.KEYCODE_F5, v)
-                    //                mIPopBottomSoftKeyCallback.onTouch(event, KeyEvent.KEYCODE_F5, event.getAction());
                 }
                 R.id.btnF6 -> {
                     return handlerTouchEvent(event, KeyEvent.KEYCODE_F6, v)
@@ -152,10 +148,10 @@ class KPopBottomSoftKey(context: Context?, softKeyBoardHeight: Int) :
                 }
                 R.id.btnRightMouse -> {
                     if (event.action == KeyEvent.ACTION_DOWN) {
-                        mIPopBottomSoftKeyCallback!!.onMouseEvent(4)
+                        mIPopBottomSoftKeyCallback?.onMouseEvent(true)
                         v.isPressed = true
                     } else if (event.action == KeyEvent.ACTION_UP) {
-                        mIPopBottomSoftKeyCallback!!.onMouseEvent(4)
+                        mIPopBottomSoftKeyCallback?.onMouseEvent(false)
                         v.isPressed = false
                     }
                     return true
@@ -199,11 +195,11 @@ class KPopBottomSoftKey(context: Context?, softKeyBoardHeight: Int) :
         v: View
     ): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
-            mIPopBottomSoftKeyCallback!!.onTouchDown(event, keycodeDpadUp)
+            mIPopBottomSoftKeyCallback?.onTouchDown(event, keycodeDpadUp)
             v.isPressed = true
             return true
         } else if (event.action == KeyEvent.ACTION_UP) {
-            mIPopBottomSoftKeyCallback!!.onTouchUp(event, keycodeDpadUp)
+            mIPopBottomSoftKeyCallback?.onTouchUp(event, keycodeDpadUp)
             v.isPressed = false
             return true
         }
