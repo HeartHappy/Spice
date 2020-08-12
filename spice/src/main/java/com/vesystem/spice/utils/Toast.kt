@@ -6,7 +6,7 @@ import android.widget.Toast
 /**
  * Created Date 2020/8/11.
  * @author ChenRui
- * ClassDescription:
+ * ClassDescription:单例toast工具类
  */
 object KToast {
 
@@ -30,7 +30,7 @@ object KToast {
                 toast?.show()
             } else {
                 oldMsg = msg
-                toast?.setText(msg);
+                toast?.setText(msg)
                 toast?.show()
             }
         }

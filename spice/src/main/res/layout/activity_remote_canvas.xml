@@ -9,15 +9,8 @@
         android:id="@+id/canvas"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="matrix"
-        android:layout_gravity="center" />
-
-    <ZoomControls
-        android:id="@+id/zoomControls"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-         />
+        android:layout_gravity="center"
+        android:scaleType="matrix" />
 
     <!--特殊键盘-->
     <LinearLayout

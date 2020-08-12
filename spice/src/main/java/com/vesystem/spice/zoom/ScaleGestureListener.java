@@ -16,6 +16,11 @@ public class ScaleGestureListener implements ScaleGestureDetector.OnScaleGesture
     private float scaleTemp = 1;
 
     private boolean isFullGroup = false;
+    private OnScaleListener onScaleListener;
+
+    public void setOnScaleListener(OnScaleListener onScaleListener) {
+        this.onScaleListener = onScaleListener;
+    }
 
     public ScaleGestureListener(View targetView, ViewGroup viewGroup) {
         this.targetView = targetView;
@@ -26,6 +31,9 @@ public class ScaleGestureListener implements ScaleGestureDetector.OnScaleGesture
         scale = scaleTemp * detector.getScaleFactor();
         targetView.setScaleX(scale);
         targetView.setScaleY(scale);
+        if (onScaleListener != null) {
+            onScaleListener.onScale(scale);
+        }
         return false;
     }
 
@@ -58,7 +66,13 @@ public class ScaleGestureListener implements ScaleGestureDetector.OnScaleGesture
             scale = 1;
             targetView.setScaleX(scale);
             targetView.setScaleY(scale);
+            targetView.setTranslationX(0);
+            targetView.setTranslationY(0);
             scaleTemp = scale;
         }
+    }
+
+    public interface OnScaleListener {
+        void onScale(float scale);
     }
 }

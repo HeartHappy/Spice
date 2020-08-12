@@ -1,6 +1,5 @@
 package com.vesystem.spice.utils
 
-import android.R
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.app.Activity
@@ -13,9 +12,10 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewAnimationUtils
-import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
+import com.vesystem.spice.R
+import com.vesystem.spice.mouse.KMouse.Companion.TAG
 import com.vesystem.spice.ui.interfaces.SoftKeyBoardListener
 
 
@@ -29,7 +29,6 @@ class ViewOperateUtil {
 
     companion object {
         private var gestureDetector: GestureDetector? = null
-        private var rootViewVisibleHeight = 0 //纪录根视图的显示高度 = 0
 
         /**
          * (x,y)是否在view的区域内
@@ -121,7 +120,7 @@ class ViewOperateUtil {
         /**
          * 设置父亲测量孩子得位置，解决孩子view发生位置改变，父view刷新时，孩子view被还原问题
          */
-        private fun setFathersMeasureChildLocation(
+        fun setFathersMeasureChildLocation(
             view: View,
             left: Int,
             top: Int,
@@ -222,6 +221,7 @@ class ViewOperateUtil {
             val rootView = activity.window.decorView.rootView
             //        final View rootView = activity.findViewById(android.R.id.content);
             rootView.viewTreeObserver.addOnGlobalLayoutListener {
+                Log.i(TAG, "setSoftKeyBoardListener: ")
                 val r = Rect()
                 rootView.getWindowVisibleDisplayFrame(r)
                 //计算出可见屏幕的高度
