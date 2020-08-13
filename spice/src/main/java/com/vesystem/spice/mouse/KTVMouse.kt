@@ -3,23 +3,29 @@ package com.vesystem.spice.mouse
 import android.content.Context
 import android.util.Log
 import android.view.MotionEvent
-import com.vesystem.spice.zoom.IZoom
 
 /**
  * Created Date 2020/7/13.
  * @author ChenRui
  * ClassDescription:TV端得鼠标操作
  */
-class KTVMouse(context: Context, mouseOption: IMouseOperation, iZoom: IZoom) :
+class KTVMouse(
+    context: Context,
+    mouseOption: IMouseOperation
+) :
     KMouse(context, mouseOption) {
 
 
     @Suppress("DEPRECATION")
     override fun onTouchEvent(event: MotionEvent, dx: Int, dy: Int): Boolean {
-//        Log.i(TAG, "onTouchEvent 参数: ${event.action},${event.actionMasked},${event.buttonState}")
+
         try {
             mouseX = if ((event.x.toInt() - dx) > 0) event.x.toInt() - dx else event.x.toInt()
             mouseY = if ((event.y.toInt() - dy) > 0) event.y.toInt() - dy else event.y.toInt()
+            Log.d(
+                TAG,
+                "onTouchEvent:x: ${event.x},Y:${event.y},mouseX:${mouseX},mouseY:${mouseY}，$dx,$dy"
+            )
             val metaState = event.metaState
             when (event.actionMasked) {
                 MotionEvent.ACTION_SCROLL -> {
@@ -52,7 +58,6 @@ class KTVMouse(context: Context, mouseOption: IMouseOperation, iZoom: IZoom) :
                 }
                 MotionEvent.ACTION_MOVE -> {
 //                    Log.i(TAG, "onTouchEvent: 按下移动：X:${event.x},Y:${event.y}")
-
                     val pdx = event.x - this.pressedX
                     val pdy = event.y - this.pressedY
                     if (event.pointerCount == 2 && kotlin.math.abs(pdx) > 5 && kotlin.math.abs(pdy) > 5) {

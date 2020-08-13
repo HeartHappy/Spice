@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                     etConnWidth.text.toString().toInt(),
                     etConnHeight.text.toString().toInt()
                 )
-                .mouseMode(KSpice.Companion.MouseMode.MODE_TOUCH)
+                .mouseMode(KSpice.Companion.MouseMode.MODE_CLICK)
                 .start(this.applicationContext)
         }
     }

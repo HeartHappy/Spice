@@ -29,10 +29,12 @@ public class ScaleGestureListener implements ScaleGestureDetector.OnScaleGesture
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
         scale = scaleTemp * detector.getScaleFactor();
-        targetView.setScaleX(scale);
-        targetView.setScaleY(scale);
-        if (onScaleListener != null) {
-            onScaleListener.onScale(scale);
+        if(scale>1){
+            targetView.setScaleX(scale);
+            targetView.setScaleY(scale);
+            if (onScaleListener != null) {
+                onScaleListener.onScale(scale);
+            }
         }
         return false;
     }

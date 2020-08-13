@@ -50,6 +50,9 @@ import org.greenrobot.eventbus.ThreadMode
  * 1、加载自定义View
  * 2、处理其他view的事件
  * 3、键盘的交互
+ * 4、鼠标的处理
+ * 5、缩放
+ * 6、系统软键盘+特殊键盘+自定义键盘
  */
 class KRemoteCanvasActivity : Activity() {
     private var keyBoard: KeyBoard? = null //自定义物理键盘
@@ -206,7 +209,13 @@ class KRemoteCanvasActivity : Activity() {
     }
 
     private fun createLoading() {
-        dialog = ProgressDialog.show(this, getString(R.string.info_progress_dialog_connecting), getString(R.string.info_progress_dialog_establishing), true, true)
+        dialog = ProgressDialog.show(
+                this,
+                getString(R.string.info_progress_dialog_connecting),
+                getString(R.string.info_progress_dialog_establishing),
+                true,
+                true
+        )
         dialog?.setCancelable(false)
     }
 
@@ -242,7 +251,7 @@ class KRemoteCanvasActivity : Activity() {
      */
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun eventBus(messageEvent: KMessageEvent) {
-//        Log.d("MessageEvent", "eventBus: ${messageEvent.requestCode}")
+        //Log.d("MessageEvent", "eventBus: ${messageEvent.requestCode}")
         dialog?.dismiss()
         when (messageEvent.requestCode) {
             KMessageEvent.SPICE_CONNECT_SUCCESS -> {
@@ -335,14 +344,12 @@ class KRemoteCanvasActivity : Activity() {
      * 处理缩放事件，目前只支持触摸模式
      */
     private fun onScaleEvent(event: MotionEvent) {
-        if (KSpice.readKeyInString(this, KSpice.MOUSE_MODE) == KSpice.Companion.MouseMode.MODE_TOUCH.toString()) {
-            scaleGestureBinder?.onTouchEvent(event)
+        if (event.pointerCount == 2 && KSpice.readKeyInBoolean(this, KSpice.IS_ADJUST)) {
+            canvas.scaleX = 1f
+            canvas.scaleY = 1f
+            KToast.show(applicationContext, getString(R.string.In_this_operation_mode_zooming_is_not_supported))
         } else {
-            if (event.pointerCount == 2) {
-                canvas.scaleX = 1f
-                canvas.scaleY = 1f
-                KToast.show(applicationContext, getString(R.string.In_this_operation_mode_zooming_is_not_supported))
-            }
+            scaleGestureBinder?.onTouchEvent(event)
         }
     }
 
@@ -360,31 +367,24 @@ class KRemoteCanvasActivity : Activity() {
     /**
      * android 系统键盘 keycode转为win 对应的键盘码
      */
-    private fun androidKeyCodeToWinCode(
-            event: KeyEvent,
-            isDown: Boolean
-    ): Boolean {
+    private fun androidKeyCodeToWinCode(event: KeyEvent, isDown: Boolean): Boolean {
         val unicodeChar =
                 event.getUnicodeChar(event.metaState and UNICODE_META_MASK.inv() and KeyEvent.META_ALT_MASK.inv())
         val code: Int
-        code = if (unicodeChar > 0) {
-            unicodeChar or UNICODE_MASK
-        } else {
-            event.keyCode
-        }
+        code = if (unicodeChar > 0) unicodeChar or UNICODE_MASK else event.keyCode
         val codeList = keyBoard?.keyCode?.get(code)
         codeList?.forEach {
             it?.let { code ->
                 var sendCode = code
                 //处理shift+字母、符号、数字切换
                 if (code and SCANCODE_SHIFT_MASK != 0) {
-                    //                    Log.d(TAG, "dispatchKeyEvent Found Shift mask. code:$code")
+                    //Log.d(TAG, "dispatchKeyEvent Found Shift mask. code:$code")
                     sendCode = code and SCANCODE_SHIFT_MASK.inv()
                     //解决右侧*、-、+输入不正确问题
                     if (event.keyCode == KeyEvent.KEYCODE_NUMPAD_MULTIPLY || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ADD) {
                         sendKey(KEY_WIN_SHIFT, isDown)
                         sendKey(sendCode, isDown)
-                        //                        Log.d(TAG, "dispatchKeyEvent: 为右侧*、+号键")
+                        //Log.d(TAG, "dispatchKeyEvent: 为右侧*、+号键")
                         return true
                     }
                 }
@@ -392,14 +392,14 @@ class KRemoteCanvasActivity : Activity() {
                 //处理alt事件
                 val altPressed = event.isAltPressed
                 if (altPressed && event.repeatCount == 0 && isDown && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT)) {
-                    //                        Log.d(TAG, "dispatchKeyEvent:left or right alt true")
+                    //Log.d(TAG, "dispatchKeyEvent:left or right alt true")
                     sendKey(KEY_WIN_ALT, isDown)
                     return true
                 } else if (altPressed && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT) && !isDown) {
-                    //                    Log.d(TAG, "dispatchKeyEvent: alt+tab组合按键时，alt按下未松开，却响应了松开事件")
+                    //Log.d(TAG, "dispatchKeyEvent: alt+tab组合按键时，alt按下未松开，却响应了松开事件")
                     return true
                 } else if (!altPressed && (event.keyCode == KeyEvent.KEYCODE_ALT_LEFT || event.keyCode == KeyEvent.KEYCODE_ALT_RIGHT) && !isDown) {
-                    //                    Log.d(TAG, "dispatchKeyEvent:left or right alt false")
+                    //Log.d(TAG, "dispatchKeyEvent:left or right alt false")
                     sendKey(KEY_WIN_ALT, isDown)
                     tabSign = false
                     return true
@@ -438,12 +438,7 @@ class KRemoteCanvasActivity : Activity() {
      * 自定义特殊键盘 keycode转win对应的键盘码
      */
     private fun androidKeycodeToWinCode(keyCode: Int, isDown: Boolean) {
-        val codeList = keyBoard?.keyCode?.get(keyCode)
-        codeList?.forEach {
-            it?.let { code ->
-                sendKey(code, isDown)
-            }
-        }
+        keyBoard?.keyCode?.get(keyCode)?.forEach { it?.let { code -> sendKey(code, isDown) } }
     }
 
     /**
@@ -474,10 +469,7 @@ class KRemoteCanvasActivity : Activity() {
     /**
      * 重置特殊键盘根据view的id
      */
-    private fun resetSpecialKeyboardByViewId(
-            linearLayout: View,
-            keyCode: Int
-    ) {
+    private fun resetSpecialKeyboardByViewId(linearLayout: View, keyCode: Int) {
         if (linearLayout.isSelected) {
             linearLayout.isSelected = !linearLayout.isSelected
             sendKey(keyCode, false)
@@ -538,17 +530,13 @@ class KRemoteCanvasActivity : Activity() {
                 }
             }
             //4、设置关闭监听
-            popupMenu?.setOnDismissListener {
-                showOrHideMenuButton(v, 1f)
-            }
+            popupMenu?.setOnDismissListener { showOrHideMenuButton(v, 1f) }
         }
         //5、读取本地配置属性，并显示UI
         if (KSpice.readKeyInBoolean(this, KSpice.IS_ADJUST)) {
-            val itemIsAdjust = popupMenu?.menu?.findItem(R.id.is_adjust)
-            itemIsAdjust?.isChecked = true
+            popupMenu?.menu?.findItem(R.id.is_adjust)?.isChecked = true
         } else {
-            val itemNoAdjust = popupMenu?.menu?.findItem(R.id.no_adjust)
-            itemNoAdjust?.isChecked = true
+            popupMenu?.menu?.findItem(R.id.no_adjust)?.isChecked = true
         }
         //6、读取本地运行环境配置，显示不同UI
         if (KSpice.readKeyInBoolean(this, KSpice.SYSTEM_RUN_ENV)) {
@@ -559,11 +547,9 @@ class KRemoteCanvasActivity : Activity() {
                             KSpice.MOUSE_MODE
                     ) == KSpice.Companion.MouseMode.MODE_CLICK.toString()
             ) {
-                val itemClickMode = popupMenu?.menu?.findItem(R.id.click_mode)
-                itemClickMode?.isChecked = true
+                popupMenu?.menu?.findItem(R.id.click_mode)?.isChecked = true
             } else {
-                val itemTouchMode = popupMenu?.menu?.findItem(R.id.touch_mode)
-                itemTouchMode?.isChecked = true
+                popupMenu?.menu?.findItem(R.id.touch_mode)?.isChecked = true
             }
         }
         //7.显示弹出菜单
