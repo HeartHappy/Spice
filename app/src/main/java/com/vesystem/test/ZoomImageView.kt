@@ -21,11 +21,9 @@ class ZoomImageView(context: Context?, attrs: AttributeSet?) :
     private var bitmapMatrix: Matrix? = null
     private var scaleFactor: Float = 1f
     init {
-
         setBackgroundColor(Color.BLUE)
         scaleType = ScaleType.MATRIX
         bitmapMatrix = Matrix()
-
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -44,7 +42,9 @@ class ZoomImageView(context: Context?, attrs: AttributeSet?) :
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        Log.i(TAG, "onTouchEvent: ${event.action}")
+        if(event.action==MotionEvent.ACTION_DOWN){
+            Log.d("ZoomImageView", "onTouchEvent: X:${event.x},rawX:${event.rawX}")
+        }
         return super.onTouchEvent(event)
     }
 

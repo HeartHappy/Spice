@@ -61,21 +61,16 @@ class KMobileMouse(
             MotionEvent.ACTION_DOWN -> {
                 this.pressedX = event.x.toInt()
                 this.pressedY = event.y.toInt()
+                return true
             }
             MotionEvent.ACTION_MOVE -> {
                 val pdx = event.x - this.pressedX
                 val pdy = event.y - this.pressedY
-                if (event.pointerCount == 2 && kotlin.math.abs(pdx) > 5 && kotlin.math.abs(pdy) > 5) {
-                    Log.i(TAG, "onTouchEvent: 双指触摸平移画面$pdx，$pdy")
+                if(isDoubleDown && (event.pointerCount == 2 && kotlin.math.abs(pdx) > 5 && kotlin.math.abs(pdy) > 5)){
+                    //双指按下并且移动了
                     isTranslation = true
-//                    iZoom.translation(pdx.toInt(), pdy.toInt())
-                    return true
+                    return false
                 }
-                if (isDoubleDown) {
-//                    Log.i(TAG, "onTouchEvent: 双指触摸平移，只松开了一个手指")
-                    return true
-                }
-
                 mouseX = (event.x - this.pressedX + relativeX).toInt()
                 mouseY = (event.y - this.pressedY + relativeY).toInt()
 //                Log.i(TAG, "onTouchEvent: dX:$dx,dy:$dy,x:${mouseX},y:${mouseY}")
@@ -149,6 +144,7 @@ class KMobileMouse(
             }
             MotionEvent.ACTION_POINTER_DOWN -> {
                 isDoubleDown = true
+                return false
             }
             //双指松开，没有移动则是右键、移动则是缩放操作
             MotionEvent.ACTION_POINTER_UP -> {

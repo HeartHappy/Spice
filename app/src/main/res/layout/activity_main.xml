@@ -12,19 +12,19 @@
         android:id="@+id/etConnIp"
         style="@style/style_et"
         android:hint="@string/conn_ip"
-        android:text="@string/ip_value" />
+        android:text="218.95.37.69" />
 
     <EditText
         android:id="@+id/etConnPort"
         style="@style/style_et"
         android:hint="@string/conn_port"
-        android:text="5901" />
+        android:text="20832" />
 
     <EditText
         android:id="@+id/etConnPwd"
         style="@style/style_et"
         android:hint="@string/conn_pwd"
-        android:text="8dfb3nkit7" />
+        android:text="vesystem.com" />
 
     <EditText
         android:id="@+id/etConnWidth"
@@ -45,7 +45,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/remote_connect" />
-
+    <ImageView
+        android:id="@+id/ivImage"
+        android:layout_width="@dimen/dp_100"
+        android:layout_height="@dimen/dp_100"/>
     <!--<Button
         android:id="@+id/btnConnectByTouch"
         android:layout_width="wrap_content"

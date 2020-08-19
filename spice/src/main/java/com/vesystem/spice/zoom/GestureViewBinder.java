@@ -3,7 +3,6 @@ package com.vesystem.spice.zoom;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -35,7 +34,7 @@ public class GestureViewBinder {
     private GestureViewBinder(Context context, ViewGroup viewGroup, View targetView) {
         this.targetView = targetView;
         this.viewGroup = viewGroup;
-        scaleGestureListener = new ScaleGestureListener(targetView, viewGroup);
+        scaleGestureListener = new ScaleGestureListener(targetView);
         scrollGestureListener = new ScrollGestureListener(targetView, viewGroup);
         scaleGestureBinder = new ScaleGestureBinder(context, scaleGestureListener);
         scrollGestureBinder = new ScrollGestureBinder(context, scrollGestureListener);

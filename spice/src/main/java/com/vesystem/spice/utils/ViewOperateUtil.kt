@@ -2,11 +2,14 @@ package com.vesystem.spice.utils
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -17,6 +20,7 @@ import androidx.annotation.RequiresApi
 import com.vesystem.spice.R
 import com.vesystem.spice.mouse.KMouse.Companion.TAG
 import com.vesystem.spice.ui.interfaces.SoftKeyBoardListener
+import java.lang.reflect.Method
 
 
 /**
@@ -211,6 +215,7 @@ class ViewOperateUtil {
 
         var isVisibleForLast = false
 
+
         /**
          * 软键盘显示、隐藏监听，并返回键盘高度
          */
@@ -241,6 +246,81 @@ class ViewOperateUtil {
                 isVisibleForLast = visible
             }
         }
+
+
+        /**
+         * 获取底部导航栏高度
+         */
+        fun getNavigationBarHeight(context: Context): Int {
+            val resources = context.resources
+            val resourceId =
+                resources.getIdentifier("navigation_bar_height", "dimen", "android")
+            if (resourceId > 0) {
+                //判断底部导航栏是否为显示状态
+                val navigationBarShowing = isNavigationBarShowing(context)
+                if (navigationBarShowing) {
+                    return resources.getDimensionPixelSize(resourceId)
+                }
+            }
+            return 0
+        }
+
+
+        /**
+         * 检测设备是否存在底部导航栏
+         */
+        @SuppressLint("PrivateApi")
+        private fun checkDeviceHasNavigationBar(context: Context): Boolean {
+            var hasNavigationBar = false
+            val rs: Resources = context.resources
+            val id: Int = rs.getIdentifier("config_showNavigationBar", "bool", "android")
+            if (id > 0) {
+                hasNavigationBar = rs.getBoolean(id)
+            }
+            try {
+                val systemPropertiesClass =
+                    Class.forName("android.os.SystemProperties")
+                val m: Method = systemPropertiesClass.getMethod("get", String::class.java)
+                val navBarOverride =
+                    m.invoke(systemPropertiesClass, "qemu.hw.mainkeys") as String
+                if ("1" == navBarOverride) {
+                    hasNavigationBar = false
+                } else if ("0" == navBarOverride) {
+                    hasNavigationBar = true
+                }
+            } catch (e: Exception) {
+            }
+            return hasNavigationBar
+        }
+
+
+        /**
+         * 检测是否显示底部导航栏
+         */
+        private fun isNavigationBarShowing(context: Context): Boolean {
+            //判断手机底部是否支持导航栏显示
+            val haveNavigationBar = checkDeviceHasNavigationBar(context)
+            if (haveNavigationBar) {
+                val brand = Build.BRAND
+                val mDeviceInfo: String
+                mDeviceInfo = if (brand.equals("HUAWEI", ignoreCase = true)) {
+                    "navigationbar_is_min"
+                } else if (brand.equals("XIAOMI", ignoreCase = true)) {
+                    "force_fsg_nav_bar"
+                } else if (brand.equals("VIVO", ignoreCase = true)) {
+                    "navigation_gesture_on"
+                } else if (brand.equals("OPPO", ignoreCase = true)) {
+                    "navigation_gesture_on"
+                } else {
+                    "navigationbar_is_min"
+                }
+                if (Settings.Global.getInt(context.contentResolver, mDeviceInfo, 0) == 0) {
+                    return true
+                }
+            }
+            return false
+        }
+
 
     }
 }

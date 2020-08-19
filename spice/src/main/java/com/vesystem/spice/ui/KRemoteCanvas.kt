@@ -1,5 +1,6 @@
 package com.vesystem.spice.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
@@ -7,6 +8,7 @@ import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatImageView
 import com.vesystem.opaque.SpiceCommunicator
 import com.vesystem.spice.R
@@ -17,11 +19,11 @@ import com.vesystem.spice.model.KMessageEvent
 import com.vesystem.spice.model.KMessageEvent.Companion.SPICE_CONNECT_FAILURE
 import com.vesystem.spice.model.KMessageEvent.Companion.SPICE_CONNECT_TIMEOUT
 import com.vesystem.spice.model.KSpice
-import com.vesystem.spice.model.KSpice.Companion.ACTION_SPICE_CONNECT_SUCCEED
-import com.vesystem.spice.model.KSpice.Companion.MOUSE_MODE
-import com.vesystem.spice.model.KSpice.Companion.RESOLUTION_HEIGHT
-import com.vesystem.spice.model.KSpice.Companion.RESOLUTION_WIDTH
-import com.vesystem.spice.model.KSpice.Companion.SYSTEM_RUN_ENV
+import com.vesystem.spice.model.KSpice.ACTION_SPICE_CONNECT_SUCCEED
+import com.vesystem.spice.model.KSpice.MOUSE_MODE
+import com.vesystem.spice.model.KSpice.RESOLUTION_HEIGHT
+import com.vesystem.spice.model.KSpice.RESOLUTION_WIDTH
+import com.vesystem.spice.model.KSpice.SYSTEM_RUN_ENV
 import com.vesystem.spice.mouse.IMouseOperation
 import com.vesystem.spice.mouse.KMobileMouse
 import com.vesystem.spice.mouse.KMouse
@@ -49,11 +51,11 @@ import kotlin.math.abs
  * 5、界面销毁断开连接、主动断开连接
  */
 class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView(context, attrs),
-        IZoom, IViewable, IMouseOperation {
+    IZoom, IViewable, IMouseOperation {
     private var spiceCommunicator: SpiceCommunicator? = null//远程连接
     private var drawable: WeakReference<Drawable>? = null//渲染bitmap
     private var scope: WeakReference<Job>? = null
-    private var canvasBitmap: Bitmap? = null
+    internal var canvasBitmap: Bitmap? = null
     private var cursorBitmap: Bitmap? = null
     private var myHandler: Handler? = null
     internal var ktvMouse: KMouse? = null
@@ -63,24 +65,34 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     private var cursorMatrix: Matrix? = null
     private var isConnectFail = false
     private var connectFailCount = 0
-    internal var dx = 0//画布距离屏幕偏移量
-    internal var dy = 0
+
+    //    internal var dx = 0//画布距离屏幕偏移量
+//    internal var dy = 0
     private var visibleRect = Rect()
     private var viewRect = Rect()
     private var keyboardHeight = 0
-    private var canvasSingleDy = 10//鼠标到达临界点时，view单次偏移量
-    private var canvasMaxDy = 0//最大偏移y轴
+    private var singleOffset = 10//鼠标到达临界点时，view单次偏移量
+    private var viewTranslationY = 0//view y轴 偏移量
+    private var viewTranslationX = 0//view x轴 偏移量
+    private var canvasTranslationX = 0 //canvas x轴 偏移
+    private var canvasTranslationY = 0 //canvas y轴 偏移
     internal var scaleFactor: Float = 1f
         set(value) {
-            if (value > 1f) {
+            if (value >= 1f) {
+                Log.d(TAG, "缩放值:$value ")
+                if (value == 1f && field > 1) {
+                    KToast.show(context, "缩放比例1:1")
+                }
                 field = value
-                checkCanvasOutRange()
-            } else {
-                KToast.show(context, "缩放比例1:1")
+                //防止在1：1在缩放时，会检测
+                if (field > 1) {
+                    checkCanvasOutRange()
+                }
             }
         }
 
     init {
+//        setBackgroundColor(Color.BLUE)
         initHandler()
         initSpice(context)
     }
@@ -91,10 +103,10 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
             when (it.what) {
                 SPICE_CONNECT_TIMEOUT -> {
                     EventBus.getDefault().post(
-                            KMessageEvent(
-                                    SPICE_CONNECT_TIMEOUT,
-                                    resources.getString(R.string.error_connect_timeout)
-                            )
+                        KMessageEvent(
+                            SPICE_CONNECT_TIMEOUT,
+                            resources.getString(R.string.error_connect_timeout)
+                        )
                     )
                 }
                 SPICE_CONNECT_FAILURE -> {
@@ -106,10 +118,10 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                             sc.isConnectSucceed -> {
                                 //Log.d(TAG, "eventBus: 连接被断开")
                                 EventBus.getDefault().post(
-                                        KMessageEvent(
-                                                SPICE_CONNECT_FAILURE,
-                                                resources.getString(R.string.error_connection_interrupted)
-                                        )
+                                    KMessageEvent(
+                                        SPICE_CONNECT_FAILURE,
+                                        resources.getString(R.string.error_connection_interrupted)
+                                    )
                                 )
                             }
                             //点击断开连接，返回得失败
@@ -129,10 +141,10 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                                 } else {
                                     connectFailCount = 0
                                     EventBus.getDefault().post(
-                                            KMessageEvent(
-                                                    SPICE_CONNECT_FAILURE,
-                                                    resources.getString(R.string.error_spice_unable_to_connect)
-                                            )
+                                        KMessageEvent(
+                                            SPICE_CONNECT_FAILURE,
+                                            resources.getString(R.string.error_spice_unable_to_connect)
+                                        )
                                     )
                                     //Log.d(TAG, "第二次连接失败: ")
                                 }
@@ -150,15 +162,15 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
 
         val isc = object : ISpiceConnect {
             override fun onUpdateBitmapWH(width: Int, height: Int) {
-                //Log.d(TAG, "onUpdateBitmapWH: $width,$height")
+                Log.d(TAG, "onUpdateBitmapWH: $width,$height")
                 //返回宽等于配置宽
                 if (width == KSpice.readKeyInInt(
-                                context,
-                                RESOLUTION_WIDTH
-                        ) && height == KSpice.readKeyInInt(
-                                context,
-                                RESOLUTION_HEIGHT
-                        ) || width == bitmapWidth && width == bitmapHeight
+                        context,
+                        RESOLUTION_WIDTH
+                    ) && height == KSpice.readKeyInInt(
+                        context,
+                        RESOLUTION_HEIGHT
+                    ) || width == bitmapWidth && width == bitmapHeight
                 ) {
                     reallocateDrawable(width, height)
                 } else {
@@ -178,12 +190,8 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
             }
 
             override fun onMouseUpdate(x: Int, y: Int) {
-                //Log.d(TAG, "onMouseUpdate: $x,$y")
+                Log.d(TAG, "onMouseUpdate: $x,$y")
                 postInvalidate()
-            }
-
-            override fun onMouseMode(relative: Boolean) {
-                //Log.d(TAG, "onMouseMode: ")
             }
 
             override fun onConnectSucceed() {
@@ -221,14 +229,14 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
         scope = WeakReference(GlobalScope.launch {
             Log.d(TAG, "启动Spice连接线程: ${Thread.currentThread().name}")
             spiceCommunicator?.connectSpice(
-                    KSpice.readKeyInString(context, KSpice.IP),
-                    KSpice.readKeyInString(context, KSpice.PORT),
-                    KSpice.readKeyInString(context, KSpice.TPort),
-                    KSpice.readKeyInString(context, KSpice.PASSWORD),
-                    KSpice.readKeyInString(context, KSpice.CF),
-                    null,
-                    "",
-                    KSpice.readKeyInBoolean(context, KSpice.SOUND)
+                KSpice.readKeyInString(context, KSpice.IP),
+                KSpice.readKeyInString(context, KSpice.PORT),
+                KSpice.readKeyInString(context, KSpice.TPort),
+                KSpice.readKeyInString(context, KSpice.PASSWORD),
+                KSpice.readKeyInString(context, KSpice.CF),
+                null,
+                "",
+                KSpice.readKeyInBoolean(context, KSpice.SOUND)
             )
         })
     }
@@ -238,18 +246,18 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      */
     fun updateMouseMode() {
         if (KSpice.readKeyInString(
-                        context,
-                        MOUSE_MODE
-                ) == KSpice.Companion.MouseMode.MODE_CLICK.toString()
+                context,
+                MOUSE_MODE
+            ) == KSpice.MouseMode.MODE_CLICK.toString()
         ) {
             ktvMouse = KTVMouse(context.applicationContext, this@KRemoteCanvas)
         } else if (KSpice.readKeyInString(
-                        context,
-                        MOUSE_MODE
-                ) == KSpice.Companion.MouseMode.MODE_TOUCH.toString()
+                context,
+                MOUSE_MODE
+            ) == KSpice.MouseMode.MODE_TOUCH.toString()
         ) {
             ktvMouse =
-                    KMobileMouse(context.applicationContext, this@KRemoteCanvas, this@KRemoteCanvas)
+                KMobileMouse(context.applicationContext, this@KRemoteCanvas, this@KRemoteCanvas)
         }
         invalidate()
     }
@@ -270,8 +278,8 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
         bitmapWidth = 0
         bitmapHeight = 0
         setBitmapConfig(
-                KSpice.readKeyInInt(context, RESOLUTION_WIDTH),
-                KSpice.readKeyInInt(context, RESOLUTION_HEIGHT)
+            KSpice.readKeyInInt(context, RESOLUTION_WIDTH),
+            KSpice.readKeyInInt(context, RESOLUTION_HEIGHT)
         )
     }
 
@@ -283,6 +291,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
             if (keyboardHeight == 0) {
                 recoverySpiceResolvingPower()
             } else {
+                recoveryDefaultScale()
                 updateSpiceResolvingPower(width, height - keyboardHeight)
             }
         } else {
@@ -293,6 +302,13 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
             }
             this.keyboardHeight = keyboardHeight
         }
+    }
+
+    fun recoveryDefaultScale() {
+        scaleX = 1f
+        scaleY = 1f
+        scaleFactor = 1f
+        checkCanvasOutRange()
     }
 
     /**
@@ -306,18 +322,26 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      * 计算matrix居中
      */
     private fun computeMatrixCenter(sw: Int, sh: Int, pw: Int, ph: Int) {
-        dx = (sw - pw) / 2
+        //如果bitmap得画面宽大于屏幕宽，则计算比例，按照比例对画面进行缩放
+        /*dx = (sw - pw) / 2
         dy = (sh - ph) / 2
-        bitmapMatrix.setTranslate(dx.toFloat(), dy.toFloat())
+        if (dx < 0) dx = 0
+        if (dy < 0) dy = 0
+        Log.d(
+            TAG,
+            "computeMatrixCenter: sw:$sw,sh:$sh,pw:$pw,ph:$ph,dx:$dx,dy:$dy，BW:$bitmapWidth,BH:$bitmapHeight"
+        )
+        bitmapMatrix.setTranslate(dx.toFloat(), dy.toFloat())*/
+//        cursorMatrix?.postTranslate(dx.toFloat(), dy.toFloat())
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
 //        Log.d(TAG, "onSizeChanged: $w,$h")
         if (KSpice.readKeyInInt(context, RESOLUTION_WIDTH) == 0 || KSpice.readKeyInInt(
-                        context,
-                        RESOLUTION_HEIGHT
-                ) == 0
+                context,
+                RESOLUTION_HEIGHT
+            ) == 0
         ) {
             KSpice.writeValueToKey(context, RESOLUTION_WIDTH, w)
             KSpice.writeValueToKey(context, RESOLUTION_HEIGHT, h)
@@ -331,11 +355,12 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
         canvasBitmap?.let {
             canvas.drawBitmap(it, bitmapMatrix, null)
             cursorBitmap?.let { cursor ->
+                // TODO: 2020/8/14 鼠标临界点细节优化
                 cursorMatrix?.let { cm ->
                     ktvMouse?.let { mouse ->
                         cursorMatrix?.setTranslate(
-                                mouse.mouseX.toFloat() + dx,
-                                mouse.mouseY.toFloat() + dy
+                            mouse.mouseX.toFloat(),
+                            mouse.mouseY.toFloat()
                         )
                     }
                     canvas.drawBitmap(cursor, cm, null)
@@ -348,6 +373,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      * 更新Bitmap和Drawable，并设置新得Drawable
      */
     override fun reallocateDrawable(width: Int, height: Int) {
+        Log.i(TAG, "reallocateDrawable: 显示得$width,$height")
         //创建bitmap
         canvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         canvasBitmap?.setHasAlpha(false)
@@ -370,13 +396,20 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      */
     private fun initCursor() {
         if (KSpice.readKeyInBoolean(context, SYSTEM_RUN_ENV)) {
+            //处理画面不为全屏，并且超出屏幕时需要处理鼠标范围
+            /*canvasBitmap?.let {
+                if (it.width > this.width || it.height > this.height) {
+                    ktvMouse?.mouseMaxX = it.width
+                    ktvMouse?.mouseMaxY = it.height
+                }
+            }*/
             cursorBitmap = BitmapFactory.decodeResource(resources, R.mipmap.cursor)
             cursorMatrix = Matrix()
             cursorBitmap?.let {
 //                Log.d(TAG, "initCursor: 初始化鼠标")
                 cursorMatrix?.setScale(1.8f, 1.8f, it.width / 2f, it.height / 2f)
                 cursorBitmap =
-                        Bitmap.createBitmap(it, 0, 0, it.width, it.height, cursorMatrix, false)
+                    Bitmap.createBitmap(it, 0, 0, it.width, it.height, cursorMatrix, false)
             }
         }
     }
@@ -384,45 +417,49 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     /**
      * 监听鼠标按下时得移动
      */
-    /* @SuppressLint("ClickableViewAccessibility")
-     override fun onTouchEvent(event: MotionEvent): Boolean {
-         ktvMouse?.onTouchEvent(event, dx, dy)
-         return true
-     }*/
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val onTouchEvent = ktvMouse?.onTouchEvent(event, canvasTranslationX, canvasTranslationY)
+        onTouchEvent?.let {
+            return it
+        }
+        return super.onTouchEvent(event)
+    }
 
     /**
      * 鼠标移动、按下、松开、中间键滚动
      */
-    /*override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
         ktvMouse?.let {
-            return it.onTouchEvent(event, dx, dy)
+            return it.onTouchEvent(event, canvasTranslationX, canvasTranslationY)
         }
         return super.onGenericMotionEvent(event)
-    }*/
+    }
+
 
     /**
      * 处理鼠标按下事件
      */
     override fun handlerMouseEvent(
-            x: Int,
-            y: Int,
-            metaState: Int,
-            mouseType: Int,
-            isMove: Boolean
+        x: Int,
+        y: Int,
+        metaState: Int,
+        mouseType: Int,
+        isMove: Boolean
     ) {
         spiceCommunicator?.writePointerEvent(
-                x,
-                y,
-                metaState,
-                mouseType and POINTER_DOWN_MASK.inv(),
-                isMove
+            x,
+            y,
+            metaState,
+            mouseType and POINTER_DOWN_MASK.inv(),
+            isMove
         )
         spiceCommunicator?.writePointerEvent(
-                x,
-                y,
-                metaState,
-                mouseType or POINTER_DOWN_MASK,
-                isMove
+            x,
+            y,
+            metaState,
+            mouseType or POINTER_DOWN_MASK,
+            isMove
         )
     }
 
@@ -430,15 +467,13 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      * 鼠标按下移动,TV的鼠标按下、手机端的点击模式，触屏按下移动时坐标
      */
     override fun mouseDownMove(x: Int, y: Int, metaState: Int, mouseType: Int, isMove: Boolean) {
-        computeTvMouseBoundaryPoint(x, y)
-//        computerMouseCriticalPoint(x, y)
-//        checkCanvasOutOfRange(x, y)
+        computeMouseBoundaryPoint(x, y)
         spiceCommunicator?.writePointerEvent(
-                x,
-                y,
-                metaState,
-                mouseType or POINTER_DOWN_MASK,
-                isMove
+            x,
+            y,
+            metaState,
+            mouseType or POINTER_DOWN_MASK,
+            isMove
         )
     }
 
@@ -447,9 +482,8 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      * 该x坐标时相对view得坐标
      */
     override fun mouseMove(x: Int, y: Int, metaState: Int, mouseType: Int, isMove: Boolean) {
-        computeTvMouseBoundaryPoint(x, y)
-//        computerMouseCriticalPoint(x, y)
-//        checkCanvasOutOfRange(x, y)
+        Log.d(TAG, "mouseMove: ${x},$y")
+        computeMouseBoundaryPoint(x, y)
         spiceCommunicator?.writePointerEvent(x, y, metaState, mouseType, isMove)
         postInvalidate()
     }
@@ -472,103 +506,139 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
         if (viewRect.bottom < height) {
             translationY += height - viewRect.bottom
         }
-        //TV端偏移后，关闭软键盘需要重置
-        dy = 0
     }
 
 
     /**
-     * 检测画布是否超出范围，出现多余黑屏部分
-     * 根据范围和鼠标坐标双重判断，增加精确性
+     * 计算鼠标边界点和超出范围限制
      */
-    private fun checkCanvasOutOfRange(x: Int, y: Int) {
-        getHitRect(viewRect)
-        if (viewRect.left > 0 && x * scaleFactor <= abs(viewRect.left)) {
-            Log.d(TAG, "mouseMove: 左侧超出范围")
-            translationX -= viewRect.left
-        } else if (viewRect.right - viewRect.left > width * scaleFactor && x * scaleFactor > width - 1 + abs(viewRect.left)) {
-            Log.d(TAG, "mouseMove: 右侧超出范围")
-            translationX += viewRect.right - width * scaleFactor
-        } else if (viewRect.top > 0 && y * scaleFactor <= abs(viewRect.top)) {
-            Log.d(TAG, "mouseMove: 顶部超出范围")
-            translationY -= viewRect.top
-        } else if (viewRect.bottom < height - keyboardHeight && y == height - 1 - keyboardHeight) {
-            Log.d(TAG, "mouseMove: 底部超出范围")
-            translationY += height - viewRect.bottom
-        }
-    }
+    @Suppress("DEPRECATION")
+    private fun computeMouseBoundaryPoint(x: Int, y: Int) {
+        getHitRect(viewRect)//缩放后或偏移后rect坐标
+        canvasBitmap?.let {
+            when {
+                //如果画面与view宽高相同即全屏情况下。 并且缩放比例为1，键盘高度显示情况下进行偏移
+                scaleFactor == 1f && width == it.width && height == it.height && keyboardHeight > 0 -> {
+                    Log.d(TAG, "computeTvMouseBoundaryPoint: 全屏模式且画面等同与屏幕像素")
+                    //画面全屏模式下，根据画面超出view范围和边界点进行偏移
 
+                    when {
+                        //view上移
+                        y > height - keyboardHeight - 10 -> {
+                            viewTranslationY = (translationY - singleOffset).toInt()
+                            if (abs(viewTranslationY) > keyboardHeight) {
+                                viewTranslationY = -keyboardHeight
+                            }
+                            translationY = viewTranslationY.toFloat()
+                        }
+                        //view往下移
+                        it.height > height - keyboardHeight && y + viewTranslationY < 10 -> {
+                            viewTranslationY = (translationY + singleOffset).toInt()
+                            if (viewTranslationY > 0) {
+                                viewTranslationY = 0
+                            }
+                            translationY = viewTranslationY.toFloat()
+                        }
+                        else -> {
+                            Log.d(TAG, "computeTvMouseBoundaryPoint: 必须else")
+                        }
+                    }
 
-    /**
-     * 计算鼠标临界点
-     */
-    private fun computerMouseCriticalPoint(x: Int, y: Int) {
-        getHitRect(viewRect)
-        // TODO: 2020/8/13 1、适配电视上的1：1缩放，打开键盘时的临界点，2、鼠标临界点细节优化
-        /*
-          var cursorWidth =0
-          var cursorHeight=0
-          cursorBitmap?.width?.let {
-              cursorWidth=it
-          }
-          cursorBitmap?.height?.let {
-              cursorHeight=it
-          }*/
-        if (viewRect.left < 0 && x * scaleFactor <= abs(viewRect.left) + 10 /*+ cursorWidth*/) {
-            Log.d(TAG, "mouseMove: 在左侧边界范围")
-            translationX += canvasSingleDy
-        } else if (viewRect.right > width && x * scaleFactor >= width - 1 + abs(viewRect.left) - 10 /*- cursorWidth*/) {
-            Log.d(TAG, "mouseMove: 在右侧边界范围")
-            translationX -= canvasSingleDy
-        } else if (viewRect.top < 0 && y * scaleFactor <= abs(viewRect.top) + 10/* + cursorHeight*/) {
-            Log.d(TAG, "mouseMove: 在顶部边界范围")
-            translationY += canvasSingleDy
-        } else if (viewRect.bottom > height - keyboardHeight && y * scaleFactor >= height + abs(viewRect.top) - keyboardHeight - 10) {
-            Log.d(TAG, "mouseMove: 在底部边界范围")
-            translationY -= canvasSingleDy
-        }
-    }
-
-    /**
-     * 计算Tv端鼠标临界点
-     */
-    private fun computeTvMouseBoundaryPoint(x: Int, y: Int) {
-        Log.i(TAG, "computeTvMouseBoundaryPoint: $x,$y,$dy,$canvasMaxDy")
-        getHitRect(viewRect)
-        if (keyboardHeight > 0 && y > height - keyboardHeight - 10) {
-            canvasMaxDy = (translationY - canvasSingleDy).toInt()
-            if (abs((canvasMaxDy)) > keyboardHeight) {
-                canvasMaxDy = -keyboardHeight
+                }
+                //缩放情况下。根据View超出屏幕范围和边界点进行偏移，注意：+、-singleOffset在触屏点击模式下需要偏移画面时更加精确
+                scaleFactor > 1f && width == it.width && height == it.height && viewRect.right - viewRect.left > width && viewRect.bottom - viewRect.top > height -> {
+                    Log.d(TAG, "computeTvMouseBoundaryPoint: 缩放模式且画面等同与屏幕像素$x,$y,rect:$viewRect,scale:$scaleFactor")
+                    //如果边缘出还有界面并且鼠标位置在边界处
+                    when {
+                        //左侧边界，往右移动
+                        viewRect.left < 0 && x in 0..(abs(viewRect.left) / scaleFactor).toInt()+singleOffset -> {
+                            Log.d(TAG, "computeTvMouseBoundaryPoint: 左侧边界，右移")
+                            viewTranslationX = (translationX + singleOffset).toInt()
+                            if (abs(viewTranslationX) > (viewRect.right - viewRect.left - width) / 2) {
+                                viewTranslationX = (viewRect.right - viewRect.left - width) / 2
+                            }
+                            translationX = viewTranslationX.toFloat()
+                        }
+                        viewRect.top < 0 && y in 0..(abs(viewRect.top) / scaleFactor).toInt()+singleOffset -> {
+                            Log.d(TAG, "computeTvMouseBoundaryPoint: 顶部边界，下移")
+                            viewTranslationY = (translationY + singleOffset).toInt()
+                            if (viewTranslationY > (viewRect.bottom - viewRect.top - height) / 2) {
+                                viewTranslationY = (viewRect.bottom - viewRect.top - height) / 2
+                            }
+                            translationY = viewTranslationY.toFloat()
+                        }
+                        viewRect.right > width && x in (width - viewRect.left)/ scaleFactor-singleOffset..viewRect.right.toFloat() -> {
+                            Log.d(TAG, "computeTvMouseBoundaryPoint: 右侧边界，左移")
+                            viewTranslationX = (translationX - singleOffset).toInt()
+                            if (abs(viewTranslationX) > (viewRect.right - viewRect.left - width) / 2) {
+                                viewTranslationX = -(viewRect.right - viewRect.left - width) / 2
+                            }
+                            translationX = viewTranslationX.toFloat()
+                        }
+                        viewRect.bottom > height - keyboardHeight && y >= (height - keyboardHeight - viewRect.top)/ scaleFactor -singleOffset -> {
+                            viewTranslationY = (translationY - singleOffset).toInt()
+                            if (abs(viewTranslationY) > (viewRect.bottom - viewRect.top - height) / 2 + keyboardHeight) {
+                                viewTranslationY =
+                                    -((viewRect.bottom - viewRect.top - height) / 2 + keyboardHeight)
+                                Log.i(TAG, "computeTvMouseBoundaryPoint: 底部越界值${viewTranslationY}")
+                            }
+                            translationY = viewTranslationY.toFloat()
+                            Log.d(
+                                TAG,
+                                "computeTvMouseBoundaryPoint: 底部边界，键盘是否打开:${keyboardHeight > 0}，上移"
+                            )
+                        }
+                        else -> {
+                            Log.d(TAG, "computeTvMouseBoundaryPoint: 必须else")
+                        }
+                    }
+                }
+                width != it.width && height != it.height -> {
+                    Log.i(TAG, "computeTvMouseBoundaryPoint: ${it.width},${it.height}")
+                    when {
+                        it.width > width && x >= width - 1 -> {
+                            Log.d(TAG, "computeTvMouseBoundaryPoint: 屏幕右侧边界点")
+                            canvasTranslationX -= singleOffset
+                            if (abs(canvasTranslationX) > it.width - width) {
+                                canvasTranslationX = -(it.width - width)
+                            }
+                            bitmapMatrix.setTranslate(canvasTranslationX.toFloat(), 0f)
+                        }
+                        it.width > width && x <= 1 -> {
+                            canvasTranslationX += singleOffset
+                            if (canvasTranslationX > 0) {
+                                canvasTranslationX = 0
+                            }
+                            bitmapMatrix.setTranslate(canvasTranslationX.toFloat(), 0f)
+                            Log.d(TAG, "computeTvMouseBoundaryPoint: 屏幕左侧边界点")
+                        }
+                        else -> Log.d(TAG, "computeTvMouseBoundaryPoint: ")
+                    }
+                }
+                else -> {
+                    Log.d(TAG, "computeTvMouseBoundaryPoint: 必须else")
+                }
             }
-            dy = canvasMaxDy
-            translationY = canvasMaxDy.toFloat()
-        } else if (keyboardHeight > 0 && y + dy < 10) {
-            canvasMaxDy = (translationY + canvasSingleDy).toInt()
-            if (canvasMaxDy > 0) {
-                canvasMaxDy = 0
-                Log.i(TAG, "computeTvMouseBoundaryPoint: 超出了")
-            }
-            dy = canvasMaxDy
-            translationY = canvasMaxDy.toFloat()
         }
+
     }
 
     /**
      * 处理鼠标松开事件、重置鼠标
      */
     override fun releaseMouseEvent(
-            x: Int,
-            y: Int,
-            metaState: Int,
-            mouseType: Int,
-            isMove: Boolean
+        x: Int,
+        y: Int,
+        metaState: Int,
+        mouseType: Int,
+        isMove: Boolean
     ) {
         spiceCommunicator?.writePointerEvent(
-                x,
-                y,
-                metaState,
-                mouseType and POINTER_DOWN_MASK.inv(),
-                isMove
+            x,
+            y,
+            metaState,
+            mouseType and POINTER_DOWN_MASK.inv(),
+            isMove
         )
         spiceCommunicator?.writePointerEvent(x, y, metaState, 0, isMove)
     }

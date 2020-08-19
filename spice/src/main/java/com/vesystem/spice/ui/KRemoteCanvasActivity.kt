@@ -68,7 +68,6 @@ class KRemoteCanvasActivity : Activity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         setContentView(R.layout.activity_remote_canvas)
-
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this)
         }
@@ -100,7 +99,7 @@ class KRemoteCanvasActivity : Activity() {
      */
     private fun initZoomEvent() {
         //初始化TV、手机不同系统下的UI
-        scaleGestureListener = ScaleGestureListener(canvas, flParent)
+        scaleGestureListener = ScaleGestureListener(canvas)
         scaleGestureListener?.isFullGroup = true
         scaleGestureListener?.setOnScaleListener { canvas.scaleFactor = it }
         scaleGestureBinder = ScaleGestureBinder(this, scaleGestureListener)
@@ -113,21 +112,25 @@ class KRemoteCanvasActivity : Activity() {
         ViewOperateUtil.setSoftKeyBoardListener(this, object : SoftKeyBoardListener {
 
             override fun showKeyBoard(keyboardHeight: Int) {
-                keyBoardHeight = keyboardHeight
+                //获取底部是否显示底部导航栏
+                val navigationBarHeight =
+                    ViewOperateUtil.getNavigationBarHeight(context = this@KRemoteCanvasActivity)
+                Log.d(TAG, "showKeyBoard: $navigationBarHeight,键盘高度：$keyboardHeight")
+                keyBoardHeight = keyboardHeight - navigationBarHeight
                 flRemoteMenu.visibility = View.GONE
                 //如果是手机端、显示特殊键盘
                 if (KSpice.readKeyInBoolean(applicationContext, KSpice.SYSTEM_RUN_ENV)) {
-                    llSpecialKeyboard.translationY = -keyboardHeight.toFloat()
+                    llSpecialKeyboard.translationY = -keyBoardHeight.toFloat()
                     val animator = ObjectAnimator.ofFloat(llSpecialKeyboard, "alpha", 0f, 1f)
                     animator.addListener(object : AnimatorListenerAdapter() {
                         override fun onAnimationEnd(animation: Animator) {
-                            canvas.updateKeyboardHeight(keyboardHeight + llSpecialKeyboard.height)
+                            canvas.updateKeyboardHeight(keyBoardHeight + llSpecialKeyboard.height)
                         }
                     })
                     animator.setDuration(500).start()
                     llSpecialKeyboard.visibility = View.VISIBLE
                 } else {
-                    canvas.updateKeyboardHeight(keyboardHeight)
+                    canvas.updateKeyboardHeight(keyBoardHeight)
                 }
             }
 
@@ -210,11 +213,11 @@ class KRemoteCanvasActivity : Activity() {
 
     private fun createLoading() {
         dialog = ProgressDialog.show(
-                this,
-                getString(R.string.info_progress_dialog_connecting),
-                getString(R.string.info_progress_dialog_establishing),
-                true,
-                true
+            this,
+            getString(R.string.info_progress_dialog_connecting),
+            getString(R.string.info_progress_dialog_establishing),
+            true,
+            true
         )
         dialog?.setCancelable(false)
     }
@@ -223,8 +226,13 @@ class KRemoteCanvasActivity : Activity() {
      * 显示系统软键盘
      */
     private fun showKeyboard() {
-        val inputMgr: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMgr.toggleSoftInputFromWindow(window.decorView.windowToken, InputMethodManager.SHOW_FORCED, InputMethodManager.SHOW_FORCED)
+        val inputMgr: InputMethodManager =
+            getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMgr.toggleSoftInputFromWindow(
+            window.decorView.windowToken,
+            InputMethodManager.SHOW_FORCED,
+            InputMethodManager.SHOW_FORCED
+        )
         //检测系统是否有键盘
 //        canvas.postDelayed(runnable, 1000)
     }
@@ -241,7 +249,8 @@ class KRemoteCanvasActivity : Activity() {
     }*/
 
     private fun hideKeyboard() {
-        val inputMgr: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val inputMgr: InputMethodManager =
+            getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMgr.hideSoftInputFromWindow(window.decorView.windowToken, 0)
     }
 
@@ -298,6 +307,7 @@ class KRemoteCanvasActivity : Activity() {
      */
     private var tabSign: Boolean = false  //解决，tab第一次按下时，只返回一次事件松开事件
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        Log.i(TAG, "dispatchKeyEvent: ${event.keyCode}")
         keyBoard ?: let {
             return false
         }
@@ -334,9 +344,8 @@ class KRemoteCanvasActivity : Activity() {
      */
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        Log.d(TAG, "onTouchEvent: ")
+        //处理双指时使用,手势缩放
         onScaleEvent(event)
-        canvas.ktvMouse?.onTouchEvent(event, canvas.dx, canvas.dy)
         return true
     }
 
@@ -344,32 +353,43 @@ class KRemoteCanvasActivity : Activity() {
      * 处理缩放事件，目前只支持触摸模式
      */
     private fun onScaleEvent(event: MotionEvent) {
-        if (event.pointerCount == 2 && KSpice.readKeyInBoolean(this, KSpice.IS_ADJUST)) {
-            canvas.scaleX = 1f
-            canvas.scaleY = 1f
-            KToast.show(applicationContext, getString(R.string.In_this_operation_mode_zooming_is_not_supported))
-        } else {
-            scaleGestureBinder?.onTouchEvent(event)
+        canvas.canvasBitmap?.let {
+            if (it.width != canvas.width || it.height != canvas.height && KSpice.readKeyInBoolean(
+                    context = this,
+                    key = KSpice.SYSTEM_RUN_ENV
+                )
+            ) {
+                canvas.recoveryDefaultScale()
+                KToast.show(
+                    applicationContext,
+                    getString(R.string.In_this_operation_mode_zooming_is_not_supported)
+                )
+            } else if (KSpice.readKeyInBoolean(
+                    context = this,
+                    key = KSpice.SYSTEM_RUN_ENV
+                ) && it.width == canvas.width && it.height == canvas.height
+            ) {
+                scaleGestureBinder?.onTouchEvent(event)
+            }
         }
     }
 
     /**
      * 鼠标移动、按下、松开、中间键滚动
      */
-    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
-        Log.d(TAG, "onGenericMotionEvent: ")
-        canvas.ktvMouse?.let {
-            return it.onTouchEvent(event, canvas.dx, canvas.dy)
-        }
-        return super.onGenericMotionEvent(event)
-    }
+    /* override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+         canvas.ktvMouse?.let {
+             return it.onTouchEvent(event, canvas.canvasTranslationX, canvas.canvasTranslationY)
+         }
+         return super.onGenericMotionEvent(event)
+     }*/
 
     /**
      * android 系统键盘 keycode转为win 对应的键盘码
      */
     private fun androidKeyCodeToWinCode(event: KeyEvent, isDown: Boolean): Boolean {
         val unicodeChar =
-                event.getUnicodeChar(event.metaState and UNICODE_META_MASK.inv() and KeyEvent.META_ALT_MASK.inv())
+            event.getUnicodeChar(event.metaState and UNICODE_META_MASK.inv() and KeyEvent.META_ALT_MASK.inv())
         val code: Int
         code = if (unicodeChar > 0) unicodeChar or UNICODE_MASK else event.keyCode
         val codeList = keyBoard?.keyCode?.get(code)
@@ -508,18 +528,18 @@ class KRemoteCanvasActivity : Activity() {
                     }
                     R.id.touch_mode -> {
                         KSpice.writeValueToKey(
-                                this,
-                                KSpice.MOUSE_MODE,
-                                KSpice.Companion.MouseMode.MODE_TOUCH.toString()
+                            this,
+                            KSpice.MOUSE_MODE,
+                            KSpice.MouseMode.MODE_TOUCH.toString()
                         )
                         canvas.updateMouseMode()
                         true
                     }
                     R.id.click_mode -> {
                         KSpice.writeValueToKey(
-                                this,
-                                KSpice.MOUSE_MODE,
-                                KSpice.Companion.MouseMode.MODE_CLICK.toString()
+                            this,
+                            KSpice.MOUSE_MODE,
+                            KSpice.MouseMode.MODE_CLICK.toString()
                         )
                         canvas.updateMouseMode()
                         true
@@ -543,9 +563,9 @@ class KRemoteCanvasActivity : Activity() {
             val itemInputMode = popupMenu?.menu?.findItem(R.id.input_mode)
             itemInputMode?.isVisible = true
             if (KSpice.readKeyInString(
-                            this,
-                            KSpice.MOUSE_MODE
-                    ) == KSpice.Companion.MouseMode.MODE_CLICK.toString()
+                    this,
+                    KSpice.MOUSE_MODE
+                ) == KSpice.MouseMode.MODE_CLICK.toString()
             ) {
                 popupMenu?.menu?.findItem(R.id.click_mode)?.isChecked = true
             } else {
@@ -561,8 +581,8 @@ class KRemoteCanvasActivity : Activity() {
      */
     private fun moveMenuButton() {
         flRemoteMenu.animate()
-                .translationX((resources.getDimensionPixelSize(R.dimen.dp_40) + flRemoteMenu.width / 2).toFloat())
-                .start()
+            .translationX((resources.getDimensionPixelSize(R.dimen.dp_40) + flRemoteMenu.width / 2).toFloat())
+            .start()
     }
 
     /**

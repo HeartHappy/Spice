@@ -12,8 +12,6 @@ interface ISpiceConnect {
 
     fun onMouseUpdate(x: Int, y: Int)
 
-    fun onMouseMode(relative: Boolean)
-
     fun onConnectSucceed()
 
     fun onConnectFail()

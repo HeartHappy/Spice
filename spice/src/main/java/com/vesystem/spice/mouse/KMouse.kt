@@ -20,13 +20,15 @@ abstract class KMouse(
     protected var pressedX: Int = 0 //首次按下的点x坐标
     protected var pressedY: Int = 0//首次按下的点y坐标
     protected var isDoubleDown = false//判断双指按下和双指松开
+    var mouseMaxX: Int = context.resources.displayMetrics.widthPixels
+    var mouseMaxY: Int = context.resources.displayMetrics.heightPixels
 
     var mouseX: Int = 0
         //鼠标的绝对X坐标
-        get() = if (field <= 0) 0 else if (field >= context.resources.displayMetrics.widthPixels) context.resources.displayMetrics.widthPixels - 1 else field
+        get() = if (field <= 0) 0 else if (field >= mouseMaxX) mouseMaxX - 1 else field
     var mouseY: Int = 0
         //鼠标的绝对Y坐标
-        get() = if (field <= 0) 0 else if (field >= context.resources.displayMetrics.heightPixels) context.resources.displayMetrics.heightPixels - 1 else field
+        get() = if (field <= 0) 0 else if (field >= mouseMaxY) mouseMaxY - 1 else field
 
 
     init {

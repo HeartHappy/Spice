@@ -31,7 +31,7 @@ import java.lang.ref.WeakReference
  * Created Date: 2020/7/7
  *
  * @author ChenRui
- * ClassDescription：该类包名、类名不能改动
+ * ClassDescription：该类的 包名、类名不能改动
  */
 class SpiceCommunicator(context: Context) {
     private external fun SpiceClientConnect(
@@ -122,8 +122,10 @@ class SpiceCommunicator(context: Context) {
         pointerMask: Int,
         rel: Boolean
     ) {
-        /*  Log.i(TAG, "sendMouseEvent: " + x + "x" + y + "," + "metaState: " +
-                metaState + ", pointerMask: " + pointerMask + ",rel:" + rel);*/
+        Log.d(
+            TAG,
+            "sendMouseEvent: " + x + "x" + y + "," + "metaState: " + metaState + ", pointerMask: " + pointerMask + ",rel:" + rel
+        )
         SpiceButtonEvent(x, y, metaState, pointerMask, rel)
         spiceConnect?.onMouseUpdate(x, y)
     }
@@ -198,7 +200,7 @@ class SpiceCommunicator(context: Context) {
 
         @JvmStatic
         private fun OnMouseUpdate(x: Int, y: Int) {
-//        Log.i(TAG, "OnMouseUpdate: X:" + x + ",Y:" + y);
+            Log.d(TAG, "OnMouseUpdate: X:$x,Y:$y");
             //android.util.Log.i(TAG, "OnMouseUpdate called: " + x +", " + y);
             myself?.get()?.spiceConnect?.onMouseUpdate(x, y)
         }
@@ -206,7 +208,7 @@ class SpiceCommunicator(context: Context) {
         @JvmStatic
         private fun OnMouseMode(relative: Boolean) {
             //        Log.i(TAG, "OnMouseMode called, relative: " + relative);
-            myself?.get()?.spiceConnect?.onMouseMode(relative)
+//            myself?.get()?.spiceConnect?.onMouseMode(relative)
         }
     }
 }
