@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
         etConnWidth.setText("$widthPixels")
         etConnHeight.setText("$heightPixels")
 
-        Glide.with(this).load("https://i.loli.net/2019/09/09/xMSbJNDX3QshWc4.jpg").error(android.R.drawable.stat_notify_error).placeholder(R.mipmap.ic_launcher_round).into(ivImage)
+//        Glide.with(this).load("https://i.loli.net/2019/09/09/xMSbJNDX3QshWc4.jpg").error(android.R.drawable.stat_notify_error).placeholder(R.mipmap.ic_launcher_round).into(ivImage)
 
         val intent = IntentFilter()
         intent.addAction(KSpice.ACTION_SPICE_CONNECT_SUCCEED)

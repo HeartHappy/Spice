@@ -3,10 +3,8 @@
 package com.vesystem.spice.mouse
 
 import android.content.Context
-import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
-import com.vesystem.spice.zoom.IZoom
 
 /**
  * Created Date 2020/7/24.
@@ -15,8 +13,7 @@ import com.vesystem.spice.zoom.IZoom
  */
 class KMobileMouse(
     context: Context,
-    mouseOption: IMouseOperation,
-    private val iZoom: IZoom
+    mouseOption: IMouseOperation
 ) :
     KMouse(context, mouseOption) {
     private var gd: GestureDetector? = null
@@ -32,7 +29,7 @@ class KMobileMouse(
         gd = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onLongPress(event: MotionEvent) {
                 //单指长按
-                if (event.pointerCount == 1 && !isTranslation) {
+                if (event.pointerCount == 1 && !isZoom) {
 //                    Log.i(TAG, "onLongPress: 长按")
                     vibrator?.vibrate(100)
                     isLongPress = true
@@ -46,16 +43,12 @@ class KMobileMouse(
                 }
             }
         })
-
-
     }
 
     /**
      * dx、dy：画面距离屏幕边缘的偏移量
      */
     override fun onTouchEvent(event: MotionEvent, dx: Int, dy: Int): Boolean {
-//        if (event.pointerCount == 1) {
-
         gd?.onTouchEvent(event)
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -66,9 +59,12 @@ class KMobileMouse(
             MotionEvent.ACTION_MOVE -> {
                 val pdx = event.x - this.pressedX
                 val pdy = event.y - this.pressedY
-                if(isDoubleDown && (event.pointerCount == 2 && kotlin.math.abs(pdx) > 5 && kotlin.math.abs(pdy) > 5)){
+                if (isDoubleDown && (event.pointerCount == 2 && kotlin.math.abs(pdx) > 5 && kotlin.math.abs(
+                        pdy
+                    ) > 5)
+                ) {
                     //双指按下并且移动了
-                    isTranslation = true
+                    isZoom = true
                     return false
                 }
                 mouseX = (event.x - this.pressedX + relativeX).toInt()
@@ -149,9 +145,8 @@ class KMobileMouse(
             //双指松开，没有移动则是右键、移动则是缩放操作
             MotionEvent.ACTION_POINTER_UP -> {
                 //如果是双指拖放松开
-                if (isTranslation) {
-                    isTranslation = false
-//                    iZoom.translationAfterLimit()
+                if (isZoom) {
+                    isZoom = false
 //                    Log.i(TAG, "onTouchEvent: 双指触摸平移松开")
                     return true
                 }

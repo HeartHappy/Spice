@@ -7,7 +7,7 @@ import android.view.MotionEvent
 /**
  * Created Date 2020/7/13.
  * @author ChenRui
- * ClassDescription:TV端得鼠标操作
+ * ClassDescription:TV端和手机端触屏点击模式的鼠标事件处理
  */
 class KTVMouse(
     context: Context,
@@ -60,10 +60,10 @@ class KTVMouse(
 //                    Log.i(TAG, "onTouchEvent: 按下")
                     this.pressedX = event.x.toInt()
                     this.pressedY = event.y.toInt()
-                    Log.i(TAG, "onTouchEvent: $mouseX,$mouseY,$dx,$dy,按下点$pressedX,$pressedY")
+                    Log.d(TAG, "onTouchEvent: $mouseX,$mouseY,$dx,$dy,按下点$pressedX,$pressedY")
                     mouseOption.handlerMouseEvent(
-                        mouseX-dx,
-                        mouseY-dy,
+                        mouseX,
+                        mouseY,
                         metaState,
                         SPICE_MOUSE_BUTTON_LEFT,
                         false
@@ -76,7 +76,7 @@ class KTVMouse(
                     val pdy = event.y - this.pressedY
                     if(isDoubleDown && (event.pointerCount == 2 && kotlin.math.abs(pdx) > 5 && kotlin.math.abs(pdy) > 5)){
                         //双指按下并且移动了
-                        isTranslation = true
+                        isZoom = true
                         return false
                     }
                    /*
@@ -85,21 +85,20 @@ class KTVMouse(
                         return true
                     }*/
                     mouseOption.mouseDownMove(
-                        mouseX-dx,
-                        mouseY-dy,
+                        mouseX,
+                        mouseY,
                         metaState,
                         SPICE_MOUSE_BUTTON_LEFT,
                         false
                     )
                     return true
                 }
-
                 MotionEvent.ACTION_UP -> {
 //                    Log.i(TAG, "onTouchEvent: 松开")
                     isDoubleDown = false//双指都松开了
                     mouseOption.releaseMouseEvent(
-                        mouseX-dx,
-                        mouseY-dy,
+                        mouseX,
+                        mouseY,
                         0,
                         SPICE_MOUSE_BUTTON_LEFT,
                         false
@@ -107,7 +106,7 @@ class KTVMouse(
                     return true
                 }
                 MotionEvent.ACTION_HOVER_MOVE -> {
-                    Log.i(TAG, "onTouchEvent: 鼠标移动X:${event.x},Y:${event.y}")
+                    Log.d(TAG, "onTouchEvent: 鼠标移动X:${event.x},Y:${event.y}")
                     mouseOption.mouseMove(
                         mouseX,
                         mouseY,
@@ -122,8 +121,8 @@ class KTVMouse(
                     return false
                 }
                 MotionEvent.ACTION_POINTER_UP -> {
-                    if (isTranslation) {
-                        isTranslation = false
+                    if (isZoom) {
+                        isZoom = false
 //                        Log.i(TAG, "onTouchEvent: 双指触摸平移松开")
                         return true
                     }

@@ -678,6 +678,7 @@ aSPICE对应的功能如下：
     <string name="no">否</string>
     <string name="touch_move">触摸移动</string>
     <string name="touch_screen_click">触屏点击</string>
+    <string name="adjust_resolving_power">正在调整分辨率…</string>
     <string name="In_this_operation_mode_zooming_is_not_supported">触屏点击和调屏模式，暂不支持缩放</string>
 
 </resources>

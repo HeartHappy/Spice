@@ -22,6 +22,7 @@
             android:launchMode="singleTask"
             android:theme="@style/AppTheme"
             android:process=":remotedesktop"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
     </application>
 
