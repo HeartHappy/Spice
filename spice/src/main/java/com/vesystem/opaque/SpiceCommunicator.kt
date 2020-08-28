@@ -106,12 +106,12 @@ class SpiceCommunicator(context: Context) {
 
     fun disconnect() {
         SpiceClientDisconnect()
-        Log.i(TAG, "disconnect: spiceConnect 断开 Spice连接，并滞空")
+//        Log.i(TAG, "disconnect: spiceConnect 断开 Spice连接，并滞空")
         myself?.clear()
     }
 
     fun sendSpiceKeyEvent(keyDown: Boolean, virtualKeyCode: Int) {
-        Log.i(TAG, "sendSpiceKeyEvent: down: $keyDown code: $virtualKeyCode")
+//        Log.i(TAG, "sendSpiceKeyEvent: down: $keyDown code: $virtualKeyCode")
         SpiceKeyEvent(keyDown, virtualKeyCode)
     }
 
@@ -122,10 +122,10 @@ class SpiceCommunicator(context: Context) {
         pointerMask: Int,
         rel: Boolean
     ) {
-        Log.d(
+       /* Log.d(
             TAG,
             "sendMouseEvent: " + x + "x" + y + "," + "metaState: " + metaState + ", pointerMask: " + pointerMask + ",rel:" + rel
-        )
+        )*/
         SpiceButtonEvent(x, y, metaState, pointerMask, rel)
         spiceConnect?.onMouseUpdate(x, y)
     }
@@ -165,7 +165,7 @@ class SpiceCommunicator(context: Context) {
 
         @JvmStatic
         private fun OnSettingsChanged(inst: Int, width: Int, height: Int, bpp: Int) {
-//        Log.i(TAG, "OnSettingsChanged: inst:" + inst);
+//        Log.d(TAG, "OnSettingsChanged: inst:" + inst)
             myself?.get()?.onSettingsChanged(width, height)
         }
 
@@ -177,7 +177,7 @@ class SpiceCommunicator(context: Context) {
             width: Int,
             height: Int
         ) {
-            //android.util.Log.i(TAG, "OnGraphicsUpdate called: " + x +", " + y + " + " + width + "x" + height );
+//            Log.d(TAG, "OnGraphicsUpdate called: ${myself?.get()?.bitmap?.width},$width,$height" )
             myself?.get()?.bitmap?.let {
                 synchronized(it) {
 //            Log.i(TAG, "OnGraphicsUpdate: 更新Bitmap");
@@ -188,19 +188,19 @@ class SpiceCommunicator(context: Context) {
                         width,
                         height
                     )
+                    myself?.get()?.spiceConnect?.onUpdateBitmap(
+                        x,
+                        y,
+                        width,
+                        height
+                    )
                 }
-                myself?.get()?.spiceConnect?.onUpdateBitmap(
-                    x,
-                    y,
-                    width,
-                    height
-                )
             }
         }
 
         @JvmStatic
         private fun OnMouseUpdate(x: Int, y: Int) {
-            Log.d(TAG, "OnMouseUpdate: X:$x,Y:$y");
+//            Log.d(TAG, "OnMouseUpdate: X:$x,Y:$y")
             //android.util.Log.i(TAG, "OnMouseUpdate called: " + x +", " + y);
             myself?.get()?.spiceConnect?.onMouseUpdate(x, y)
         }

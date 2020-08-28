@@ -13,15 +13,15 @@ import android.view.MotionEvent
  */
 abstract class KMouse(
     val context: Context,
-    val mouseOption: IMouseOperation
+    val mouseOption: IMouseOperation,
+    private val mouseMaxX: Int,
+    private val mouseMaxY: Int
 ) {
     protected var vibrator: Vibrator? = null
     protected var isZoom: Boolean = false//是否为手势缩放
     protected var pressedX: Int = 0 //首次按下的点x坐标
     protected var pressedY: Int = 0//首次按下的点y坐标
     protected var isDoubleDown = false//判断双指按下和双指松开
-    private var mouseMaxX: Int = context.resources.displayMetrics.widthPixels
-    private var mouseMaxY: Int = context.resources.displayMetrics.heightPixels
 
     var mouseX: Int = 0
         //鼠标的绝对X坐标

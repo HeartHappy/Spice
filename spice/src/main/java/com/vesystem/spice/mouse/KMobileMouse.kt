@@ -13,9 +13,11 @@ import android.view.MotionEvent
  */
 class KMobileMouse(
     context: Context,
-    mouseOption: IMouseOperation
+    mouseOption: IMouseOperation,
+    mouseMaxX: Int,
+    mouseMaxY: Int
 ) :
-    KMouse(context, mouseOption) {
+    KMouse(context, mouseOption,mouseMaxX,mouseMaxY) {
     private var gd: GestureDetector? = null
 
 

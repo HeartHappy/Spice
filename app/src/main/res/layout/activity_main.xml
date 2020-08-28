@@ -18,13 +18,13 @@
         android:id="@+id/etConnPort"
         style="@style/style_et"
         android:hint="@string/conn_port"
-        android:text="5903" />
+        android:text="5901" />
 
     <EditText
         android:id="@+id/etConnPwd"
         style="@style/style_et"
         android:hint="@string/conn_pwd"
-        android:text="d3c7fbr4tk" />
+        android:text="ewtxr4ybki" />
 
     <EditText
         android:id="@+id/etConnWidth"
@@ -45,8 +45,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/remote_connect" />
- <!--   <ImageView
-        android:id="@+id/ivImage"
-        android:layout_width="@dimen/dp_100"
-        android:layout_height="@dimen/dp_100"/>-->
+    <!--   <ImageView
+           android:id="@+id/ivImage"
+           android:layout_width="@dimen/dp_100"
+           android:layout_height="@dimen/dp_100"/>-->
 </LinearLayout>

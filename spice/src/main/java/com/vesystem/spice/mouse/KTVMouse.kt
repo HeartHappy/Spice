@@ -11,9 +11,11 @@ import android.view.MotionEvent
  */
 class KTVMouse(
     context: Context,
-    mouseOption: IMouseOperation
+    mouseOption: IMouseOperation,
+    mouseMaxX: Int,
+    mouseMaxY: Int
 ) :
-    KMouse(context, mouseOption) {
+    KMouse(context, mouseOption,mouseMaxX,mouseMaxY) {
 
 
     @Suppress("DEPRECATION")

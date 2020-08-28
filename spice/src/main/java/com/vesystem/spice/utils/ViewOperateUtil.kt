@@ -21,6 +21,7 @@ import com.vesystem.spice.R
 import com.vesystem.spice.mouse.KMouse.Companion.TAG
 import com.vesystem.spice.ui.interfaces.SoftKeyBoardListener
 import java.lang.reflect.Method
+import kotlin.math.hypot
 
 
 /**
@@ -75,7 +76,10 @@ class ViewOperateUtil {
          * view随触摸、鼠标事件移动
          */
         @Suppress("DEPRECATION")
-        fun moveView(view: View, event: MotionEvent): Boolean {
+        fun moveView(
+            view: View,
+            event: MotionEvent
+        ): Boolean {
             gestureDetector?.let {
                 return it.onTouchEvent(event)
             } ?: let {
@@ -134,9 +138,30 @@ class ViewOperateUtil {
             val params = FrameLayout.LayoutParams(right - left, bottom - top)
             val parent = view.parent
             val p = parent as View
+            var marginLeft = left
+            var marginTop = top
             val marginRight = p.width - right
             val marginBottom = p.height - bottom
-            params.setMargins(left, top, marginRight, marginBottom)
+
+            //范围限制，不能全部超出屏幕
+            if (left < -view.width / 2 - view.translationX) {
+                marginLeft = (-view.width / 2 - view.translationX).toInt()
+            }
+            if (left > p.width - view.translationX - view.width / 2) {
+                Log.d(TAG, "setFathersMeasureChildLocation: 大于右侧了")
+                marginLeft = (p.width - view.translationX - view.width / 2).toInt()
+            }
+            if (top < -view.height / 2) {
+                marginTop = -view.height / 2
+            }
+            if (top > p.height + view.height / 2) {
+                marginTop = p.height + view.height / 2
+            }
+            Log.d(
+                TAG,
+                "setFathersMeasureChildLocation: ${marginLeft},${view.width}，${view.translationX}"
+            )
+            params.setMargins(marginLeft, marginTop, marginRight, marginBottom)
             view.layoutParams = params
         }
 
@@ -187,11 +212,11 @@ class ViewOperateUtil {
          * @param duration 时长
          */
         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-        fun disapperCircularReveal(context: Context, duration: Int) {
+        fun disappearCircularReveal(context: Context, duration: Int) {
             val widthPixels = context.resources.displayMetrics.widthPixels
             val heightPixels = context.resources.displayMetrics.heightPixels
             val hypot =
-                Math.hypot(widthPixels.toDouble(), heightPixels.toDouble()).toFloat()
+                hypot(widthPixels.toDouble(), heightPixels.toDouble()).toFloat()
             val decorView = (context as Activity).window.decorView
             val circularReveal =
                 ViewAnimationUtils.createCircularReveal(
@@ -226,7 +251,6 @@ class ViewOperateUtil {
             val rootView = activity.window.decorView.rootView
             //        final View rootView = activity.findViewById(android.R.id.content);
             rootView.viewTreeObserver.addOnGlobalLayoutListener {
-                Log.i(TAG, "setSoftKeyBoardListener: ")
                 val r = Rect()
                 rootView.getWindowVisibleDisplayFrame(r)
                 //计算出可见屏幕的高度
