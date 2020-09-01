@@ -11,42 +11,21 @@
     <EditText
         android:id="@+id/etConnIp"
         style="@style/style_et"
-        android:hint="@string/conn_ip"
-        android:text="192.168.30.62" />
+        android:hint="@string/conn_ip" />
 
     <EditText
         android:id="@+id/etConnPort"
         style="@style/style_et"
-        android:hint="@string/conn_port"
-        android:text="5901" />
+        android:hint="@string/conn_port" />
 
     <EditText
         android:id="@+id/etConnPwd"
         style="@style/style_et"
-        android:hint="@string/conn_pwd"
-        android:text="ewtxr4ybki" />
-
-    <EditText
-        android:id="@+id/etConnWidth"
-        style="@style/style_et"
-        android:hint="@string/please_enter_pixel_width"
-        android:inputType="number"
-        android:textColorHint="@color/col_gray" />
-
-    <EditText
-        android:id="@+id/etConnHeight"
-        style="@style/style_et"
-        android:hint="@string/please_enter_pixel_height"
-        android:inputType="number"
-        android:textColorHint="@color/col_gray" />
+        android:hint="@string/conn_pwd" />
 
     <Button
         android:id="@+id/btnConnect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/remote_connect" />
-    <!--   <ImageView
-           android:id="@+id/ivImage"
-           android:layout_width="@dimen/dp_100"
-           android:layout_height="@dimen/dp_100"/>-->
 </LinearLayout>

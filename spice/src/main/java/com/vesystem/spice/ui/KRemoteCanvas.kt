@@ -7,6 +7,7 @@ import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatImageView
 import com.vesystem.opaque.SpiceCommunicator
@@ -68,11 +69,12 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     private var responseHeight = 0
     private var cursorMatrix: Matrix? = null
     private var isConnectFail = false //是否连接失败
-    private var isAdjustFullSucceed = false //是否已经调整到全屏
+    internal var isAdjustFullSucceed = false //是否已经调整到全屏
+    internal var isAdjustFromPassive = false //true开始被动调整
     private var connectFailCount = 0 //连接失败计数器，最大失败3次
     private var viewRect = Rect()
     private var keyboardHeight = 0
-    private var singleOffset = 30//鼠标到达临界点时，view单次偏移量
+    private var singleOffset = 20//鼠标到达临界点时，view单次偏移量
     private var viewTranslationY = 0//view y轴 偏移量
     private var viewTranslationX = 0//view x轴 偏移量
     private var canvasTranslationX = 0 //canvas x轴 偏移
@@ -152,14 +154,29 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                     }
                 }
                 SPICE_ADJUST_RESOLVING_TIMEOUT -> {
-                    //如果还没有切换到全屏，自动调整到适用分辨率
-                    KToast.show(context, "系统为您调整到适用分辨率")
-                    EventBus.getDefault().post(
-                        KMessageEvent(
-                            SPICE_ADJUST_RESOLVING_TIMEOUT,
-                            false
+                    //如果是竖屏情况下调整分辨率失败，切换横屏
+                    if (screenWidth < screenHeight) {
+                        KToast.show(context, "系统为您调整到适用分辨率")
+                        EventBus.getDefault().post(
+                            KMessageEvent(
+                                SPICE_ADJUST_RESOLVING_TIMEOUT,
+                                false
+                            )
                         )
-                    )
+                        //如果已经是横屏调整失败，则直接显示画面
+                    } else {
+                        KToast.show(context, "调整分辨率失败")
+                        isAdjustFullSucceed = true
+                        reallocateDrawable(responseWidth, responseHeight, true)
+                        Log.d(TAG, "initHandler: ${Thread.currentThread().name}")
+                        spiceCommunicator?.UpdateBitmap(
+                            canvasBitmap,
+                            0,
+                            0,
+                            responseWidth,
+                            responseHeight
+                        )
+                    }
                 }
                 SPICE_ADJUST_RESOLVING_PASSIVE_TIMEOUT -> {
                     //如果已经全屏过，但是被动调整分辨率，需要检测
@@ -183,30 +200,31 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                 when {
                     //1、等同于配置宽高
                     width == screenWidth && height == screenHeight -> {
-//                        Log.d(TAG, "onUpdateBitmapWH: 调屏为全屏宽高")
+                        Log.d(TAG, "onUpdateBitmapWH: 调屏为全屏宽高")
                         reallocateDrawable(width, height, false)
                     }
                     //2、等同于键盘宽高
                     width == adjustWidth && height == adjustHeight -> {
-//                        Log.d(TAG, "onUpdateBitmapWH: 调屏为键盘显示宽高")
+                        Log.d(TAG, "onUpdateBitmapWH: 调屏为键盘显示宽高")
                         reallocateDrawable(width, height, false)
                     }
                     //3、都不是,直接获取的结果。自动调整为默认配置分辨率
                     else -> {
                         //被重启了，虚拟机导致的自动更新分辨率
                         if (isAdjustFullSucceed && width != screenWidth && height != screenHeight) {
-                            /*Log.d(
+                            isAdjustFromPassive = true
+                            Log.d(
                                 TAG,
                                 "onUpdateBitmapWH: 分辨率被动调整为不全屏了，调整分辨率，并且显示当前画面，不提示，不更新鼠标$screenWidth,$screenHeight"
-                            )*/
+                            )
                             reallocateDrawable(width, height, true)
                             updateResolutionToPassive(screenWidth, screenHeight)
                             updateMouseMode()
                         } else {
-                            /*Log.d(
+                            Log.d(
                                 TAG,
                                 "onUpdateBitmapWH: 都不是,直接获取的结果。自动调整为默认配置分辨率:请求得宽高：$screenWidth,$screenHeight,响应得宽高：${responseWidth},${responseHeight}"
-                            )*/
+                            )
                             EventBus.getDefault().post(KMessageEvent(SPICE_ADJUST_RESOLVING))
                             updateResolutionToDefault(screenWidth, screenHeight)
                         }
@@ -334,6 +352,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      * 检测分辨率是否全屏，切换横竖屏时调用
      */
     private fun checkResolvingIsFullScreen(w: Int, h: Int) {
+        //检测横屏后，返回的分辨率是否为全屏
         if (w == responseWidth && h == responseHeight) {
             reallocateDrawable(w, h, false)
             //解决直接显示时，画面没有出来，直接更新so库得画面
@@ -442,6 +461,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
 //        Log.d(TAG, "reallocateDrawable: 显示宽高$width,$height,响应宽高：$responseWidth,$responseHeight")
         if (responseWidth == screenWidth && responseHeight == screenHeight) {
             isAdjustFullSucceed = true
+            isAdjustFromPassive = false
         }
         myHandler?.removeMessages(SPICE_ADJUST_RESOLVING_TIMEOUT)
         EventBus.getDefault().post(KMessageEvent(SPICE_ADJUST_RESOLVING_SUCCEED))
@@ -717,7 +737,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
         scope?.get()?.cancel()
     }
 
-    /*companion object {
+    companion object {
         private const val TAG = "KRemoteCanvas"
-    }*/
+    }
 }

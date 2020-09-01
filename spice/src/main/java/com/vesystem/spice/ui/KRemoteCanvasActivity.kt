@@ -78,7 +78,6 @@ class KRemoteCanvasActivity : Activity() {
         createLoading()
     }
 
-
     @SuppressLint("ClickableViewAccessibility")
     private fun initMenuEvent() {
         //菜单按钮相关事件
@@ -368,7 +367,7 @@ class KRemoteCanvasActivity : Activity() {
      * 处理缩放事件，目前只支持触摸模式
      */
     private fun onScaleEvent(event: MotionEvent) {
-        //TODO 缩放模式不支持环境：1、画面没全屏不支持缩放 2、调屏模式下并且打开键盘也不支持
+        //1、画面没全屏不支持缩放  2、调屏模式下并且打开键盘也不支持   3、TV环境不支持 4、被调整分辨率情况不支持
         canvas.canvasBitmap?.let {
             if (KSpice.readKeyInBoolean(
                     context = this,
@@ -376,10 +375,11 @@ class KRemoteCanvasActivity : Activity() {
                 ) && keyBoardHeight > 0 && KSpice.readKeyInBoolean(
                     context = this,
                     key = KSpice.SYSTEM_RUN_ENV
-                )
+                ) || canvas.isAdjustFromPassive
             ) {
                 canvas.updateScaleToDefault()
-            } else {
+                //调整全屏成功才支持缩放
+            } else if (canvas.isAdjustFullSucceed) {
                 scaleGestureBinder?.onTouchEvent(event)
             }
             /*if (it.width != canvas.width || it.height != canvas.height || (KSpice.readKeyInBoolean(context = this, key = KSpice.IS_ADJUST) && keyBoardHeight > 0)) {
@@ -393,7 +393,6 @@ class KRemoteCanvasActivity : Activity() {
             }*/
         }
     }
-
 
     /**
      * android 系统键盘 keycode转为win 对应的键盘码

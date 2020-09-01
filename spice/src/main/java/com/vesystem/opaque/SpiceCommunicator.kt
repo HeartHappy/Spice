@@ -122,10 +122,10 @@ class SpiceCommunicator(context: Context) {
         pointerMask: Int,
         rel: Boolean
     ) {
-       /* Log.d(
-            TAG,
-            "sendMouseEvent: " + x + "x" + y + "," + "metaState: " + metaState + ", pointerMask: " + pointerMask + ",rel:" + rel
-        )*/
+        /* Log.d(
+             TAG,
+             "sendMouseEvent: " + x + "x" + y + "," + "metaState: " + metaState + ", pointerMask: " + pointerMask + ",rel:" + rel
+         )*/
         SpiceButtonEvent(x, y, metaState, pointerMask, rel)
         spiceConnect?.onMouseUpdate(x, y)
     }
@@ -165,7 +165,7 @@ class SpiceCommunicator(context: Context) {
 
         @JvmStatic
         private fun OnSettingsChanged(inst: Int, width: Int, height: Int, bpp: Int) {
-//        Log.d(TAG, "OnSettingsChanged: inst:" + inst)
+            Log.d(TAG, "OnSettingsChanged: inst:" + inst)
             myself?.get()?.onSettingsChanged(width, height)
         }
 
@@ -177,10 +177,10 @@ class SpiceCommunicator(context: Context) {
             width: Int,
             height: Int
         ) {
-//            Log.d(TAG, "OnGraphicsUpdate called: ${myself?.get()?.bitmap?.width},$width,$height" )
+            Log.d(TAG, "OnGraphicsUpdate called: ${myself?.get()?.bitmap?.width},$width,$height")
             myself?.get()?.bitmap?.let {
                 synchronized(it) {
-//            Log.i(TAG, "OnGraphicsUpdate: 更新Bitmap");
+//            Log.i(TAG, "OnGraphicsUpdate: 更新Bitmap")
                     myself?.get()?.UpdateBitmap(
                         it,
                         x,

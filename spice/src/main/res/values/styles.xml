@@ -3,7 +3,7 @@
 
 
     <!-- Application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@color/col_blank</item>
     </style>
     <style name="MyPopupStyle" parent="Widget.AppCompat.PopupMenu">

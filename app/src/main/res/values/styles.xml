@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/col_blank</item>
+    </style>
+    <style name="style_et">
+        <item name="android:layout_width">@dimen/dp_150</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/col_white</item>
+    </style>
+</resources>

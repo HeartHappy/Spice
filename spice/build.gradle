@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-
+apply plugin: 'com.novoda.bintray-release'
 android {
     compileSdkVersion 29
     buildToolsVersion "30.0.0"
@@ -46,12 +46,21 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0" //kotlin协程库
     implementation 'androidx.appcompat:appcompat:1.2.0'
     testImplementation 'junit:junit:4.13'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     implementation 'com.google.android.material:material:1.2.0'
     //事件总线
     implementation 'org.greenrobot:eventbus:3.2.0'
 //    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.4'
 //    implementation 'com.github.GeniusLiu:GestureViewBinder:v1.0.0'
 
+}
+
+publish {
+    userOrg = 'hearthappy'//bintray.com 注册的用户名
+    groupId = 'com.vesystem'//jcenter 一般是组织名上的路径
+    artifactId = 'spice'//项目名称
+    publishVersion = '1.0.0'//版本号
+    desc = 'This is my share to meven first project'//描述，不重要
+    website = 'https://github.com/HeartHappy/Spice'//网站，最好有
 }
