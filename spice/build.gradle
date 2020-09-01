@@ -1,7 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-apply plugin: 'com.novoda.bintray-release'
 android {
     compileSdkVersion 29
     buildToolsVersion "30.0.0"
@@ -54,13 +53,4 @@ dependencies {
 //    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.4'
 //    implementation 'com.github.GeniusLiu:GestureViewBinder:v1.0.0'
 
-}
-
-publish {
-    userOrg = 'hearthappy'//bintray.com 注册的用户名
-    groupId = 'com.vesystem'//jcenter 一般是组织名上的路径
-    artifactId = 'spice'//项目名称
-    publishVersion = '1.0.0'//版本号
-    desc = 'This is my share to meven first project'//描述，不重要
-    website = 'https://github.com/HeartHappy/Spice'//网站，最好有
 }
