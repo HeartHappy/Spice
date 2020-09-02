@@ -16,13 +16,12 @@
         android:name="android.hardware.microphone"
         android:required="false" />
 
-    <application>
+    <application android:theme="@style/AppTheme">
         <activity
             android:name=".ui.KRemoteCanvasActivity"
-            android:launchMode="singleTask"
-            android:theme="@style/AppTheme"
-            android:process=":remotedesktop"
             android:configChanges="orientation|keyboardHidden|screenSize"
+            android:launchMode="singleTask"
+            android:process=":remotedesktop"
             android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
     </application>
 
