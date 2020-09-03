@@ -3,6 +3,13 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.github.dcendents.android-maven'
 group='com.github.hearthappy'
+
+repositories {
+    mavenCentral()
+    google()
+    jcenter()
+    maven { url "https://jitpack.io" }
+}
 android {
     compileSdkVersion 29
     buildToolsVersion "30.0.0"
@@ -33,17 +40,7 @@ android {
     sourceSets.main {
         java.srcDirs += 'src/main/java'
         jniLibs.srcDirs += 'src/main/jniLibs'
-
-        manifest.srcFile 'src/main/AndroidManifest.xml'
-//        aidl.srcDirs = ['src']
-//        renderscript.srcDirs = ['src']
-        res.srcDirs = ['src/main/res']
-        assets.srcDirs = ['src/main/assets']
-//        jniLibs.srcDirs = ['libs']
-    }
-
-    packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
+        resources.srcDirs += 'src/main/res'
     }
 }
 
@@ -68,6 +65,7 @@ dependencies {
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from android.sourceSets.main.java.sourceFiles
+    from android.sourceSets.main.res.sourceFiles
 }
 
 task javadoc(type: Javadoc) {
