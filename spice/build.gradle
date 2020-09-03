@@ -33,6 +33,13 @@ android {
     sourceSets.main {
         java.srcDirs += 'src/main/java'
         jniLibs.srcDirs += 'src/main/jniLibs'
+
+        manifest.srcFile 'src/main/AndroidManifest.xml'
+//        aidl.srcDirs = ['src']
+//        renderscript.srcDirs = ['src']
+        res.srcDirs = ['src/main/res']
+        assets.srcDirs = ['src/main/assets']
+//        jniLibs.srcDirs = ['libs']
     }
 
     packagingOptions {
@@ -58,6 +65,29 @@ dependencies {
 
 }
 
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.sourceFiles
 }
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.sourceFiles
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task classesJar(type: Jar) {
+    from "$buildDir/intermediates/classes/release"
+}
+
+artifacts {
+    archives classesJar
+    archives javadocJar
+    archives sourcesJar
+}
+
+
