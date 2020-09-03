@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.github.dcendents.android-maven'
-group='com.github.hearthappy'
+group='com.github.vesystem'
 
 
 android {
@@ -35,7 +35,6 @@ android {
     sourceSets.main {
         java.srcDirs += 'src/main/java'
         jniLibs.srcDirs += 'src/main/jniLibs'
-//        resources.srcDirs += 'src/main/res'
     }
 }
 
@@ -57,7 +56,7 @@ dependencies {
 
 }
 
-/*task sourcesJar(type: Jar) {
+task sourcesJar(type: Jar) {
     classifier = 'sources'
     from android.sourceSets.main.java.sourceFiles
 }
@@ -72,14 +71,13 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
-*//*task classesJar(type: Jar) {
-    from "$buildDir/intermediates/classes/release"
-}*//*
-
+//task classesJar(type: Jar) {
+//    from "$buildDir/intermediates/classes/release"
+//}
 artifacts {
 //    archives classesJar
     archives javadocJar
     archives sourcesJar
-}*/
+}
 
 
