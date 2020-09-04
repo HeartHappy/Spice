@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
                 .sound(true)
                 .isAdjust(false)
                 .mouseMode(KSpice.MouseMode.MODE_CLICK)
-                .start(this.applicationContext)
+                .start(this)
         }
     }
 

@@ -12,6 +12,7 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:text="@string/adjust_resolving_power"
+        android:background="@color/col_blank"
         android:textColor="@color/col_white"
         android:textSize="@dimen/sp_18"
         android:visibility="gone" />

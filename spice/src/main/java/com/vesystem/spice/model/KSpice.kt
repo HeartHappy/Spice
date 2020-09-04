@@ -2,7 +2,6 @@ package com.vesystem.spice.model
 
 import android.content.Context
 import android.content.Intent
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.SharedPreferences
 import com.vesystem.spice.ui.KRemoteCanvasActivity
 import com.vesystem.spice.utils.SystemRunEnvUtil
@@ -102,10 +101,8 @@ object KSpice {
             )
         val sp = getSpiceConfigSP(context)
         writeSharedPreferences(sp)
-
         System.gc()
         val intent = Intent(context, KRemoteCanvasActivity::class.java)
-        intent.flags = FLAG_ACTIVITY_NEW_TASK
         context.startActivity(intent)
     }
 

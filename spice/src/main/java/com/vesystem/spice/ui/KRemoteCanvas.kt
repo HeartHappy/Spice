@@ -94,7 +94,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
         }
 
     init {
-        setBackgroundColor(Color.BLACK)
+//        setBackgroundColor(Color.BLACK)
         initHandler()
         initSpice(context)
     }
