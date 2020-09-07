@@ -245,7 +245,6 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                 myHandler?.removeMessages(SPICE_CONNECT_TIMEOUT)
                 myHandler?.removeMessages(SPICE_ADJUST_RESOLVING_TIMEOUT)
                 myHandler?.sendEmptyMessage(SPICE_ADJUST_RESOLVING)
-                context.sendBroadcast(Intent(ACTION_SPICE_CONNECT_SUCCEED))
                 EventBus.getDefault().post(KMessageEvent(KMessageEvent.SPICE_CONNECT_SUCCESS))
             }
 

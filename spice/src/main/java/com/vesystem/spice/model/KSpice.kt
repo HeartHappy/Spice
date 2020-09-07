@@ -55,6 +55,7 @@ object KSpice {
     internal const val IS_ADJUST = "IS_ADJUST"
 
     const val ACTION_SPICE_CONNECT_SUCCEED = "ACTION_SPICE_CONNECT_SUCCEED"//spice连接成功通知Action
+    const val ACTION_SPICE_CONNECT_DISCONNECT = "ACTION_SPICE_CONNECT_DISCONNECT"//spice连接断开通知Action
 
     fun connect(ip: String, port: String, password: String): KSpice {
         this.ip = ip

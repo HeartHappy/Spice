@@ -66,6 +66,8 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == KSpice.ACTION_SPICE_CONNECT_SUCCEED) {
                 Log.i("ConnectReceiver", "onReceive: 连接成功")
+            } else if (intent?.action == KSpice.ACTION_SPICE_CONNECT_DISCONNECT) {
+                Log.d("ConnectReceiver", "onReceive: 连接断开")
             }
         }
     }

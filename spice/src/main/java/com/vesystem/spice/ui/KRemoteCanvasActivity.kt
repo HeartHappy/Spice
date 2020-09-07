@@ -10,6 +10,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.util.Log
@@ -263,6 +264,7 @@ class KRemoteCanvasActivity : Activity() {
         dialog?.dismiss()
         when (messageEvent.requestCode) {
             KMessageEvent.SPICE_CONNECT_SUCCESS -> {
+                sendBroadcast(Intent(KSpice.ACTION_SPICE_CONNECT_SUCCEED))
                 //初始化键盘拦截器
                 keyBoard = KeyBoard(resources)
             }
@@ -613,6 +615,7 @@ class KRemoteCanvasActivity : Activity() {
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this)
         }
+        sendBroadcast(Intent(KSpice.ACTION_SPICE_CONNECT_DISCONNECT))
         Log.d(TAG, "onDestroy: 销毁并断开连接")
         canvas.close()
         android.os.Process.killProcess(android.os.Process.myPid())
