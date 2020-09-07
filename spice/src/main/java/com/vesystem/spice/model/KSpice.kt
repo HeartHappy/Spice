@@ -1,8 +1,6 @@
 package com.vesystem.spice.model
 
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
+import android.content.*
 import com.vesystem.spice.ui.KRemoteCanvasActivity
 import com.vesystem.spice.utils.SystemRunEnvUtil
 import java.io.File
@@ -105,6 +103,23 @@ object KSpice {
         System.gc()
         val intent = Intent(context, KRemoteCanvasActivity::class.java)
         context.startActivity(intent)
+    }
+
+    /**
+     * 注册连接成功和断开的广播通知
+     */
+    fun registerSpiceReceiver(context: Context, receiver: BroadcastReceiver) {
+        val intent = IntentFilter()
+        intent.addAction(ACTION_SPICE_CONNECT_SUCCEED)
+        intent.addAction(ACTION_SPICE_CONNECT_DISCONNECT)
+        context.registerReceiver(receiver, intent)
+    }
+
+    /**
+     * 注销广播通知
+     */
+    fun unregisterSpiceReceiver(context: Context, receiver: BroadcastReceiver) {
+        context.unregisterReceiver(receiver)
     }
 
 

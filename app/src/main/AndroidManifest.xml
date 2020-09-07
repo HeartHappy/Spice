@@ -23,6 +23,11 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/SplashTheme">
+        <receiver
+            android:name=".ConnectReceiver"
+            android:enabled="true"
+            android:exported="true"/>
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,4 +36,5 @@
             </intent-filter>
         </activity>
     </application>
+
 </manifest>

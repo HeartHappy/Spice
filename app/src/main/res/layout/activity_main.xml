@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    android:background="@color/col_white"
     tools:context="com.vesystem.test.MainActivity">
 
     <EditText

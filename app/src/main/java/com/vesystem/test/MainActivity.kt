@@ -1,13 +1,8 @@
 package com.vesystem.test
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -20,10 +15,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         imm()
         setContentView(R.layout.activity_main)
-
-        val intent = IntentFilter()
-        intent.addAction(KSpice.ACTION_SPICE_CONNECT_SUCCEED)
-        registerReceiver(connectReceiver, intent)
+        KSpice.registerSpiceReceiver(this, connectReceiver)
         connectDesktop()
     }
 
@@ -58,17 +50,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(connectReceiver)
-    }
-
-
-    class ConnectReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == KSpice.ACTION_SPICE_CONNECT_SUCCEED) {
-                Log.i("ConnectReceiver", "onReceive: 连接成功")
-            } else if (intent?.action == KSpice.ACTION_SPICE_CONNECT_DISCONNECT) {
-                Log.d("ConnectReceiver", "onReceive: 连接断开")
-            }
-        }
+        KSpice.unregisterSpiceReceiver(this, connectReceiver)
     }
 }
