@@ -12,6 +12,7 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -73,12 +74,18 @@ class KRemoteCanvasActivity : Activity() {
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this)
         }
-        initMenuEvent()
-        initZoomEvent()
-        initSoftKeyboardEvent()
-        initSpecialKeyboardEvent()
-        createLoading()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            initMenuEvent()
+            initZoomEvent()
+            initSoftKeyboardEvent()
+            initSpecialKeyboardEvent()
+            createLoading()
+        } else {
+            dialogHint(getString(R.string.Your_current_system_version_is_too_low_please_upgrade))
+        }
     }
+
 
     @SuppressLint("ClickableViewAccessibility")
     private fun initMenuEvent() {
