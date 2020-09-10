@@ -1,0 +1,72 @@
+<resources>
+    <string name="app_name">Spice</string>
+    <string name="close">关闭</string>
+    <string name="error_connection_interrupted">连接被中断。</string>
+    <string name="error_spice_unable_to_connect">无法连接或认证。请确认服务器地址和密码。</string>
+    <string name="error_connect_timeout">连接超时</string>
+    <string name="info_progress_dialog_connecting">正在连接…</string>
+    <string name="info_progress_dialog_establishing">正在建立握手。请稍候…</string>
+    <string name="error">错误</string>
+    <string name="confirm">确定</string>
+    <string name="operator_mode">操作模式</string>
+    <string name="connect_fail">远程连接断开</string>
+    <string name="key_shift">Shift</string>
+    <string name="key_ctrl">Ctrl</string>
+    <string name="key_tab">Tab</string>
+    <string name="key_esc">Esc</string>
+    <string name="key_alt">Alt</string>
+    <string name="sys_key">系统键盘</string>
+    <string name="disconnect">断开连接</string>
+    <string name="the_system_has_no_keyboard">系统没有自带软键盘，请插入物理键盘操作！</string>
+    <string name="open_key_is_adj_resolving">弹出键盘调屏</string>
+    <string name="is">是</string>
+    <string name="no">否</string>
+    <string name="touch_move">触摸移动</string>
+    <string name="touch_screen_click">触屏点击</string>
+    <string name="adjust_resolving_power">正在调整分辨率…</string>
+    <string name="In_this_operation_mode_zooming_is_not_supported">触屏点击和调屏模式，暂不支持缩放</string>
+    <string name="Your_current_system_version_is_too_low_please_upgrade">你当前的系统版本过低，请升级至5.0以上再使用</string>
+    <string name="input_mode_help">输入模式操作帮助</string>
+    <string name="input_mode_help_text">
+"在所有输入模式下都可以通过点击键盘图标来显示屏上键盘。键盘的显示方法因使用的机器而异。
+
+使用直接触屏点击模式可以更直观地控制触摸屏。 使用触摸移动模式可以更好地控制鼠标。
+
+直接、滑动平移模式：
+  -通过触摸直接控制鼠标。
+  -滑动即可平移。
+  -点击即可鼠标单击。
+  -在两个手指开始滑动时在两个手指之间发送滚动事件。
+
+直接、按住并平移模式：
+  -通过触摸直接控制鼠标。
+  -长按即可平移。
+  -点击即可鼠标单击。
+  -在两个手指开始滑动时在两个手指之间发送滚动事件。
+
+模拟触摸板模式：
+  -像触摸板一样使用屏幕。
+  -滑动即可移动鼠标指针。
+  -将鼠标移到屏幕边缘之外即可进行平移。
+  -点击相当于鼠标单击指针所在的位置。
+  -滚动事件发送到鼠标指针所在的位置。
+
+单手模式：
+  -与直接、滑动平移模式相同，不同之处在于长按可打开菜单并选择模式。
+  -选择模式后，在屏幕上滑动手指即可执行选定的手势。
+  -抬起手指即可完成手势。
+
+所有输入模式：
+  -左击：点击一次
+  -双击：双击
+  -右击：按住并用另一根手指点击屏幕上其他任何地方
+  -备用右击：使用设备的\"Back\"按钮或手势。
+  -中击：按住并用另外两个手指点击屏幕上其他任何地方
+  -拖动鼠标：长按并滑动
+  -滚轮：两根手指上下/左右拖动。快速拖动滚动更快
+  -放大/缩小：缩放即可控制显示的大小
+  -Ctrl / Alt键：菜单-&gt; Ctrl / Alt按钮。完成后请不要忘记关闭！
+  -按键组合：菜单-&gt;更多-&gt;发送按键
+  -发送文字：在屏幕键盘上输入文字，或使用菜单-&gt;更多-&gt;发送文字"
+  </string>
+</resources>
