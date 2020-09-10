@@ -579,7 +579,7 @@ class KRemoteCanvasActivity : Activity() {
         }
         //6、读取本地运行环境配置，显示不同UI
         if (KSpice.readKeyInBoolean(this, KSpice.SYSTEM_RUN_ENV)) {
-            val itemInputMode = popupMenu?.menu?.findItem(R.id.input_mode)
+            val itemInputMode = popupMenu?.menu?.findItem(R.id.operator_mode)
             itemInputMode?.isVisible = true
             if (KSpice.readKeyInString(
                     this,

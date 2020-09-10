@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Spice</string>
+    <string name="close">close</string>
+    <string name="error_connection_interrupted">The connection was interrupted。</string>
+    <string name="error_spice_unable_to_connect">Unable to connect or authenticate. Please confirm the server address and password.</string>
+    <string name="error_connect_timeout">connection timed out</string>
+    <string name="info_progress_dialog_connecting">Connecting</string>
+    <string name="info_progress_dialog_establishing">A handshake is being established. Please wait</string>
+    <string name="error">error</string>
+    <string name="confirm">determine</string>
+    <string name="operator_mode">Operation mode</string>
+    <string name="connect_fail">Remote connection lost</string>
+    <string name="key_shift">Shift</string>
+    <string name="key_ctrl">Ctrl</string>
+    <string name="key_tab">Tab</string>
+    <string name="key_esc">Esc</string>
+    <string name="key_alt">Alt</string>
+    <string name="sys_key">System keyboard</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="the_system_has_no_keyboard">The system does not have its own soft keyboard, please insert the physical keyboard operation!</string>
+    <string name="open_key_is_adj_resolving">Pop up keyboard to adjust screen</string>
+    <string name="is">yes</string>
+    <string name="no">no</string>
+    <string name="touch_move">Touch move</string>
+    <string name="touch_screen_click">Touch screen click</string>
+    <string name="adjust_resolving_power">Adjusting resolution</string>
+    <string name="In_this_operation_mode_zooming_is_not_supported">Touch screen click and adjust screen mode, do not support zoom temporarily</string>
+    <string name="Your_current_system_version_is_too_low_please_upgrade">Your current system version is too low, please upgrade to 5.0 or above</string>
+    <string name="input_mode_help">Operating instructions of operation mode</string>
+    <string name="input_mode_help_text">
+Introduction to operation mode:
+
+-Touch screen click mode is used to control the touch screen more intuitively. Use touch move mode for better control of the mouse.
+
+Operating instructions:
+
+1. Touch screen click mode:
+
+-Left mouse button: single click on the screen to directly control the mouse.
+
+-Double click the left mouse button: double click the screen twice with one finger.
+
+-Right mouse button: Double finger operation. Press the specified position with one finger, and release the other finger after clicking any position on the screen to complete the right mouse button operation.
+
+-Press and drag the mouse: after pressing with one finger, move the mouse in the case of pressing to complete the area selection of the mouse and the rolling effect of the scroll bar.
+
+
+
+2. Touch mobile mode:
+
+-Move the mouse: slide on the screen to move the mouse pointer
+
+-Left mouse button: click anywhere on the screen, which is equivalent to clicking the position where the mouse pointer stays.
+
+-Double click: double click anywhere on the screen, which is equivalent to double clicking the mouse pointer.
+
+-Right mouse button: Double finger operation. Press any position of the screen with one finger, and release the other finger after clicking on the screen, and the menu will pop up when the mouse pointer stays. Complete the right mouse button operation
+
+-Press and drag the mouse: long press the touch screen until you feel the vibration of the screen, and then move the mouse pointer to complete the selection of the mouse area and the rolling effect of the scroll bar.
+
+
+
+Pop up the keyboard to adjust the resolution:
+
+Yes: when the keyboard pops up, the resolution of the remote desktop will be automatically adjusted to the remaining display range of the screen for operation
+
+No: without adjusting the resolution, you can move the screen by dragging the mouse to the edge.
+  </string>
+</resources>

@@ -7,8 +7,8 @@
         android:title="@string/sys_key"
         app:showAsAction="never" />
     <item
-        android:id="@+id/input_mode"
-        android:icon="@mipmap/input_mode"
+        android:id="@+id/operator_mode"
+        android:icon="@mipmap/operator_mode"
         android:title="@string/operator_mode"
         android:visible="false"
         app:showAsAction="never">

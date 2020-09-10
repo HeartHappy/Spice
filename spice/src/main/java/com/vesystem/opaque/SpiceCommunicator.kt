@@ -20,7 +20,6 @@ package com.vesystem.opaque
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
 import com.vesystem.spice.interfaces.ISpiceConnect
 import com.vesystem.spice.model.KMessageEvent
 import org.freedesktop.gstreamer.GStreamer
@@ -143,7 +142,7 @@ class SpiceCommunicator(context: Context) {
 
 
     companion object {
-        private const val TAG = "SpiceCommunicator"
+        //        private const val TAG = "SpiceCommunicator"
         private var myself: WeakReference<SpiceCommunicator>? = null
 
         init {
@@ -165,7 +164,7 @@ class SpiceCommunicator(context: Context) {
 
         @JvmStatic
         private fun OnSettingsChanged(inst: Int, width: Int, height: Int, bpp: Int) {
-            Log.d(TAG, "OnSettingsChanged: inst:" + inst)
+//            Log.d(TAG, "OnSettingsChanged: inst:" + inst)
             myself?.get()?.onSettingsChanged(width, height)
         }
 
@@ -177,7 +176,7 @@ class SpiceCommunicator(context: Context) {
             width: Int,
             height: Int
         ) {
-            Log.d(TAG, "OnGraphicsUpdate called: ${myself?.get()?.bitmap?.width},$width,$height")
+//            Log.d(TAG, "OnGraphicsUpdate called: ${myself?.get()?.bitmap?.width},$width,$height")
             myself?.get()?.bitmap?.let {
                 synchronized(it) {
 //            Log.i(TAG, "OnGraphicsUpdate: 更新Bitmap")

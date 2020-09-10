@@ -11,20 +11,20 @@
     <EditText
         android:id="@+id/etConnIp"
         style="@style/style_et"
-        android:text="192.168.30.61"
-        android:hint="@string/conn_ip" />
+        android:hint="@string/conn_ip"
+        android:text="192.168.30.62" />
 
     <EditText
         android:id="@+id/etConnPort"
         style="@style/style_et"
-        android:text="5909"
-        android:hint="@string/conn_port" />
+        android:hint="@string/conn_port"
+        android:text="5903" />
 
     <EditText
         android:id="@+id/etConnPwd"
         style="@style/style_et"
-        android:text="1wpsnq4dm5"
-        android:hint="@string/conn_pwd" />
+        android:hint="@string/conn_pwd"
+        android:text="pwnj87crb9" />
 
     <Button
         android:id="@+id/btnConnect"
