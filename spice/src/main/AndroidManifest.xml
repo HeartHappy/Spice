@@ -15,14 +15,15 @@
     <uses-feature
         android:name="android.hardware.microphone"
         android:required="false" />
-
+    <!--android:configChanges="orientation|keyboardHidden|screenSize|keyboard|navigation" 这些情况下发生了改变，不重启Activity，默认会重启当前Activity-->
     <application>
         <activity
             android:name=".ui.KRemoteCanvasActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:configChanges="orientation|keyboardHidden|screenSize|keyboard|navigation"
             android:launchMode="singleTask"
             android:process=":remotedesktop"
             android:theme="@style/RemoteTheme"
             android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
+        <receiver android:name=".receiver.UsbReceiver" />
     </application>
 </manifest>

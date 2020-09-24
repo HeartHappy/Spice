@@ -4,8 +4,8 @@
     <string name="conn_pwd">请输入密码</string>
     <string name="please_enter_pixel_width">请输入像素宽</string>
     <string name="please_enter_pixel_height">请输入像素高</string>
-    <string name="remote_connect">远程连接</string>
+    <string name="remote_connect">remote connect</string>
     <string name="ip_value">192.168.30.62</string>
-    <string name="chinese">中文</string>
-    <string name="english">英文</string>
+    <string name="chinese">chinese</string>
+    <string name="english">english</string>
 </resources>

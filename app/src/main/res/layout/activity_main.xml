@@ -18,13 +18,27 @@
         android:id="@+id/etConnPort"
         style="@style/style_et"
         android:hint="@string/conn_port"
-        android:text="5903" />
+        android:text="5906" />
 
     <EditText
         android:id="@+id/etConnPwd"
         style="@style/style_et"
         android:hint="@string/conn_pwd"
-        android:text="pwnj87crb9" />
+        android:text="wyxd584hcz" />
+
+    <Button
+        android:id="@+id/btnChina"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/chinese"
+        android:textColor="@color/col_blank" />
+
+    <Button
+        android:id="@+id/btnEnglish"
+        android:text="@string/english"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/col_blank" />
 
     <Button
         android:id="@+id/btnConnect"

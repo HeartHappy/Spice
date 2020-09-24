@@ -2,7 +2,6 @@ package com.vesystem.spice.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.os.Handler
@@ -23,7 +22,6 @@ import com.vesystem.spice.model.KMessageEvent.Companion.SPICE_ADJUST_RESOLVING_T
 import com.vesystem.spice.model.KMessageEvent.Companion.SPICE_CONNECT_FAILURE
 import com.vesystem.spice.model.KMessageEvent.Companion.SPICE_CONNECT_TIMEOUT
 import com.vesystem.spice.model.KSpice
-import com.vesystem.spice.model.KSpice.ACTION_SPICE_CONNECT_SUCCEED
 import com.vesystem.spice.model.KSpice.MOUSE_MODE
 import com.vesystem.spice.model.KSpice.SYSTEM_RUN_ENV
 import com.vesystem.spice.mouse.IMouseOperation
@@ -165,10 +163,13 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                         )
                         //如果已经是横屏调整失败，则直接显示画面
                     } else {
-                        KToast.show(context, "调整分辨率失败")
+//                        KToast.show(context, "调整分辨率失败")
                         isAdjustFullSucceed = true
                         reallocateDrawable(responseWidth, responseHeight, true)
-                        Log.d(TAG, "initHandler: ${Thread.currentThread().name}")
+                        Log.d(
+                            TAG,
+                            "onUpdateBitmapWH，调整失败直接显示: sw:$screenWidth,sh:$screenHeight,resW:$responseWidth,resH:$responseHeight"
+                        )
                         spiceCommunicator?.UpdateBitmap(
                             canvasBitmap,
                             0,
@@ -358,6 +359,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
             spiceCommunicator?.UpdateBitmap(canvasBitmap, 0, 0, w, h)
         } else {
             //调整全屏分辨率没有成功，情况需要提示，成功后，在调整是被动调整。
+            Log.d(TAG, "checkResolvingIsFullScreen: 调整为横屏w:$w,h:$h")
             EventBus.getDefault().post(KMessageEvent(SPICE_ADJUST_RESOLVING))
             updateResolutionToDefault(w, h)
         }

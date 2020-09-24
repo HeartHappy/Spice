@@ -76,6 +76,7 @@ class KRemoteCanvasActivity : Activity() {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            initBroadcast()
             initMenuEvent()
             initZoomEvent()
             initSoftKeyboardEvent()
@@ -261,6 +262,14 @@ class KRemoteCanvasActivity : Activity() {
         inputMgr.hideSoftInputFromWindow(window.decorView.windowToken, 0)
     }
 
+    private fun sendDelayNotice() {
+        canvas.postDelayed(connectSucceedRunnable, 60 * 1000)
+    }
+
+    private val connectSucceedRunnable = {
+        sendBroadcast(Intent(KSpice.ACTION_SPICE_CONNECT_SUCCEED))
+        sendDelayNotice()
+    }
 
     /**
      * Spice连接时和调整分辨率的相关事件处理
@@ -272,6 +281,7 @@ class KRemoteCanvasActivity : Activity() {
         when (messageEvent.requestCode) {
             KMessageEvent.SPICE_CONNECT_SUCCESS -> {
                 sendBroadcast(Intent(KSpice.ACTION_SPICE_CONNECT_SUCCEED))
+                sendDelayNotice()
                 //初始化键盘拦截器
                 keyBoard = KeyBoard(resources)
             }
@@ -624,6 +634,7 @@ class KRemoteCanvasActivity : Activity() {
         }
         sendBroadcast(Intent(KSpice.ACTION_SPICE_CONNECT_DISCONNECT))
         Log.d(TAG, "onDestroy: 销毁并断开连接")
+        canvas.removeCallbacks(connectSucceedRunnable)
         canvas.close()
         android.os.Process.killProcess(android.os.Process.myPid())
         System.gc()
