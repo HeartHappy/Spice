@@ -18,13 +18,13 @@
         android:id="@+id/etConnPort"
         style="@style/style_et"
         android:hint="@string/conn_port"
-        android:text="5906" />
+        android:text="5914" />
 
     <EditText
         android:id="@+id/etConnPwd"
         style="@style/style_et"
         android:hint="@string/conn_pwd"
-        android:text="wyxd584hcz" />
+        android:text="5tv2pqagfk" />
 
     <Button
         android:id="@+id/btnChina"

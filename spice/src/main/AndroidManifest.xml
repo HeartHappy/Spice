@@ -24,6 +24,5 @@
             android:process=":remotedesktop"
             android:theme="@style/RemoteTheme"
             android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
-        <receiver android:name=".receiver.UsbReceiver" />
     </application>
 </manifest>

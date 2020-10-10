@@ -30,6 +30,7 @@ import com.vesystem.spice.mouse.KMouse
 import com.vesystem.spice.mouse.KMouse.Companion.POINTER_DOWN_MASK
 import com.vesystem.spice.mouse.KTVMouse
 import com.vesystem.spice.utils.KToast
+import kotlinx.android.synthetic.main.activity_remote_canvas.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -52,7 +53,7 @@ import kotlin.math.abs
 class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView(context, attrs),
     IViewable, IMouseOperation {
     private var spiceCommunicator: SpiceCommunicator? = null//远程连接
-    private var drawable: WeakReference<Drawable>? = null//渲染bitmap
+    private var canvasDrawable: Drawable? = null//渲染bitmap
     private var scope: WeakReference<Job>? = null
     internal var canvasBitmap: Bitmap? = null
     private var cursorBitmap: Bitmap? = null
@@ -181,6 +182,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                 }
                 SPICE_ADJUST_RESOLVING_PASSIVE_TIMEOUT -> {
                     //如果已经全屏过，但是被动调整分辨率，需要检测
+                    Log.d(TAG, "initHandler: 被动调整超时，进行重连接")
                     startConnect()
                     checkResolvingIsFullScreenFromPassive(screenWidth, screenHeight)
                 }
@@ -216,7 +218,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                             isAdjustFromPassive = true
                             Log.d(
                                 TAG,
-                                "onUpdateBitmapWH: 分辨率被动调整为不全屏了，调整分辨率，并且显示当前画面，不提示，不更新鼠标$screenWidth,$screenHeight"
+                                "onUpdateBitmapWH: 分辨率被动调整为不全屏了，调整分辨率，并且显示当前画面$width,$height，不提示，不更新鼠标"
                             )
                             reallocateDrawable(width, height, true)
                             updateResolutionToPassive(screenWidth, screenHeight)
@@ -332,9 +334,10 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      * 被动调整分辨率
      */
     private fun updateResolutionToPassive(w: Int, h: Int) {
+        Log.d(TAG, "updateResolutionToPassive: 被动请求调整分辨W:$w,H:$h")
         setBitmapConfig(w, h)
         myHandler?.removeMessages(SPICE_ADJUST_RESOLVING_PASSIVE_TIMEOUT)
-        myHandler?.sendEmptyMessageDelayed(SPICE_ADJUST_RESOLVING_PASSIVE_TIMEOUT, 5000)
+        myHandler?.sendEmptyMessageDelayed(SPICE_ADJUST_RESOLVING_PASSIVE_TIMEOUT, 10000)
     }
 
 
@@ -344,6 +347,8 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     private fun checkResolvingIsFullScreenFromPassive(w: Int, h: Int) {
         if (w != responseWidth && h != responseHeight) {
             updateResolutionToPassive(screenWidth, screenHeight)
+        }else if(w==responseWidth && h==responseHeight){
+            reallocateDrawable(w,h,false)
         }
     }
 
@@ -465,11 +470,19 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
             isAdjustFromPassive = false
         }
         myHandler?.removeMessages(SPICE_ADJUST_RESOLVING_TIMEOUT)
+        myHandler?.removeMessages(SPICE_ADJUST_RESOLVING_PASSIVE_TIMEOUT)
         EventBus.getDefault().post(KMessageEvent(SPICE_ADJUST_RESOLVING_SUCCEED))
+
+        canvasBitmap?.let {
+            if (it.width==width && it.height==height) {
+                return
+            }
+        }
+        Log.d(TAG, "reallocateDrawable: 执行创建")
         //创建bitmap
         canvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         canvasBitmap?.setHasAlpha(false)
-        drawable = WeakReference(KCanvasDrawable(width, height))
+        canvasDrawable = KCanvasDrawable(width, height)
         spiceCommunicator?.setBitmap(canvasBitmap)
         //设置画面居中
         if (isCanvasCenter) {
@@ -479,8 +492,9 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
         }
         //初始化鼠标
         initCursor()
-        post { setImageDrawable(drawable?.get()) }
+        post { setImageDrawable(canvasDrawable) }
     }
+
 
     /**
      * 初始化鼠标
