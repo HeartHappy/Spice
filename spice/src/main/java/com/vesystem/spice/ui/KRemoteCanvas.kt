@@ -30,7 +30,6 @@ import com.vesystem.spice.mouse.KMouse
 import com.vesystem.spice.mouse.KMouse.Companion.POINTER_DOWN_MASK
 import com.vesystem.spice.mouse.KTVMouse
 import com.vesystem.spice.utils.KToast
-import kotlinx.android.synthetic.main.activity_remote_canvas.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -347,8 +346,8 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
     private fun checkResolvingIsFullScreenFromPassive(w: Int, h: Int) {
         if (w != responseWidth && h != responseHeight) {
             updateResolutionToPassive(screenWidth, screenHeight)
-        }else if(w==responseWidth && h==responseHeight){
-            reallocateDrawable(w,h,false)
+        } else if (w == responseWidth && h == responseHeight) {
+            reallocateDrawable(w, h, false)
         }
     }
 
@@ -474,7 +473,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
         EventBus.getDefault().post(KMessageEvent(SPICE_ADJUST_RESOLVING_SUCCEED))
 
         canvasBitmap?.let {
-            if (it.width==width && it.height==height) {
+            if (it.width == width && it.height == height) {
                 return
             }
         }
@@ -725,6 +724,13 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      */
     fun rightMouseButton(isDown: Boolean) {
         if (isDown) ktvMouse?.downMouseRightButton() else ktvMouse?.upMouseRightButton()
+    }
+
+    /**
+     * 鼠标中间键的按下、松开
+     */
+    fun middleMouseButton(isDown: Boolean) {
+        if (isDown) ktvMouse?.downMouseMiddleButton() else ktvMouse?.upMouseMiddleButton()
     }
 
     /**

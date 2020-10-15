@@ -52,6 +52,14 @@ abstract class KMouse(
         mouseOption.releaseMouseEvent(mouseX, mouseY, 0, SPICE_MOUSE_BUTTON_RIGHT, false)
     }
 
+    fun downMouseMiddleButton() {
+        mouseOption.handlerMouseEvent(mouseX, mouseY, 0, SPICE_MOUSE_BUTTON_MIDDLE, false)
+    }
+
+    fun upMouseMiddleButton() {
+        mouseOption.releaseMouseEvent(mouseX, mouseY, 0, SPICE_MOUSE_BUTTON_MIDDLE, false)
+    }
+
     abstract fun onTouchEvent(event: MotionEvent, dx: Int, dy: Int): Boolean
 
     companion object {
@@ -60,7 +68,7 @@ abstract class KMouse(
         const val SPICE_MOUSE_BUTTON_MOVE = 0
         const val SPICE_MOUSE_BUTTON_LEFT = 1
 
-        //        const val SPICE_MOUSE_BUTTON_MIDDLE = 2
+        const val SPICE_MOUSE_BUTTON_MIDDLE = 2
         const val SPICE_MOUSE_BUTTON_RIGHT = 3
         const val SPICE_MOUSE_MIDDLE_SCROLL_UP = 4
         const val SPICE_MOUSE_MIDDLE_SCROLL_DOWN = 5

@@ -348,10 +348,18 @@ class KRemoteCanvasActivity : Activity() {
 
         val isDown = event.action == KeyEvent.ACTION_DOWN
         //处理键盘菜单按钮
-        if (event.keyCode == KeyEvent.KEYCODE_MENU && !isDown) {
+        if (event.keyCode == KeyEvent.KEYCODE_MENU && !isDown && event.source == InputDevice.SOURCE_KEYBOARD) {
+            Log.d(TAG, "dispatchKeyEvent: 键盘显示显示菜单${event.source}")
             showDetailListMenu(flRemoteMenu)
             return true
         }
+        //处理鼠标中间键
+        if (event.keyCode == KeyEvent.KEYCODE_MENU && event.source == InputDevice.SOURCE_MOUSE) {
+            Log.d(TAG, "dispatchKeyEvent: 鼠标中间键:${event.keyCode},$isDown")
+            canvas.middleMouseButton(isDown)
+            return true
+        }
+
 
         //解决右键弹出菜单问题
         if (event.keyCode == KeyEvent.KEYCODE_BACK && event.source == InputDevice.SOURCE_MOUSE) {
