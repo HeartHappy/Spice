@@ -7,9 +7,8 @@ import android.content.res.Configuration
 import android.os.Process
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
-import android.util.Log
 import com.github.jokar.multilanguages.library.MultiLanguage
-import com.vesystem.test.LocalManageUtil
+import com.vesystem.spicedemo.LocalManageUtil
 
 
 /**

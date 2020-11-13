@@ -29,7 +29,7 @@ object KSpice {
     private var isAdjust = true//默认弹出键盘调整分辨率
 
 
-    internal const val SPICE_CONFIG = "SpiceConfig"
+    private const val SPICE_CONFIG = "SpiceConfig"
 
     //连接配置
     internal const val IP = "IP"
@@ -84,10 +84,17 @@ object KSpice {
         return this
     }
 
+    fun runtimeToPhone(isPhone:Boolean): KSpice {
+        this.sysRunEnv=isPhone
+        return this
+    }
+
     fun start(context: Context) {
         cf = context.filesDir.path + File.separator + "ca0.pem"
-        sysRunEnv = SystemRunEnvUtil.comprehensiveCheckSystemEnv(context)
-
+        //不为手机，则检测
+        if(!sysRunEnv){
+            sysRunEnv = SystemRunEnvUtil.comprehensiveCheckSystemEnv(context)
+        }
         val widthPixels = context.resources.displayMetrics.widthPixels
         val heightPixels = context.resources.displayMetrics.heightPixels
         resolutionWidth =

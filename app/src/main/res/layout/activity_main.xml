@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context="com.vesystem.test.MainActivity">
+    tools:context="com.vesystem.spicedemo.MainActivity">
 
     <EditText
         android:id="@+id/etConnIp"
@@ -18,13 +18,13 @@
         android:id="@+id/etConnPort"
         style="@style/style_et"
         android:hint="@string/conn_port"
-        android:text="5903" />
+        android:text="5915" />
 
     <EditText
         android:id="@+id/etConnPwd"
         style="@style/style_et"
         android:hint="@string/conn_pwd"
-        android:text="j7g4exfu1k" />
+        android:text="fkeywsdcj2" />
 
     <Button
         android:id="@+id/btnChina"

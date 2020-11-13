@@ -1,4 +1,4 @@
-package com.vesystem.test
+package com.vesystem.spicedemo
 
 import android.content.Context
 import android.content.res.Configuration

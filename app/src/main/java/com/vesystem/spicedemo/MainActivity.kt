@@ -1,4 +1,4 @@
-package com.vesystem.test
+package com.vesystem.spicedemo
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
@@ -12,7 +12,7 @@ import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.github.jokar.multilanguages.library.MultiLanguage
 import com.vesystem.spice.model.KSpice
-import com.vesystem.test.LocalManageUtil.saveSelectLanguage
+import com.vesystem.spicedemo.LocalManageUtil.saveSelectLanguage
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -80,6 +80,7 @@ class MainActivity : AppCompatActivity() {
                     etConnPort.text.toString(),
                     etConnPwd.text.toString()
                 )
+                .runtimeToPhone(true)
                 .sound(true)
                 .isAdjust(false)
                 .mouseMode(KSpice.MouseMode.MODE_CLICK)

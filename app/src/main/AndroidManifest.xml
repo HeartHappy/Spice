@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.vesystem.test">
+    package="com.vesystem.spicedemo">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -27,11 +27,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/SplashTheme">
         <receiver
-            android:name=".ConnectReceiver"
+            android:name="com.vesystem.spicedemo.ConnectReceiver"
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".MainActivity" android:launchMode="singleTask">
+        <activity android:name="com.vesystem.spicedemo.MainActivity" android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

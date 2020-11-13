@@ -20,6 +20,7 @@ package com.vesystem.opaque
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import com.vesystem.spice.interfaces.ISpiceConnect
 import com.vesystem.spice.model.KMessageEvent
 import org.freedesktop.gstreamer.GStreamer
@@ -121,10 +122,10 @@ class SpiceCommunicator(context: Context) {
         pointerMask: Int,
         rel: Boolean
     ) {
-        /* Log.d(
-             TAG,
+         Log.d(
+             "Spice",
              "sendMouseEvent: " + x + "x" + y + "," + "metaState: " + metaState + ", pointerMask: " + pointerMask + ",rel:" + rel
-         )*/
+         )
         SpiceButtonEvent(x, y, metaState, pointerMask, rel)
         spiceConnect?.onMouseUpdate(x, y)
     }
