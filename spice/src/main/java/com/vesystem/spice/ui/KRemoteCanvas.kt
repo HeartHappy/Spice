@@ -499,7 +499,11 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
      * 初始化鼠标
      */
     private fun initCursor() {
-        if (KSpice.readKeyInBoolean(context, SYSTEM_RUN_ENV)) {
+        if (KSpice.readKeyInInt(context, SYSTEM_RUN_ENV) == KSpice.PHONE || KSpice.readKeyInInt(
+                context,
+                SYSTEM_RUN_ENV
+            ) == KSpice.FLAT
+        ) {
             cursorBitmap = BitmapFactory.decodeResource(resources, R.mipmap.cursor)
             cursorMatrix = Matrix()
             cursorBitmap?.let {

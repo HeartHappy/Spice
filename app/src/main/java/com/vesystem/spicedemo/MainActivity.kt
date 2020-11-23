@@ -7,11 +7,13 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.github.jokar.multilanguages.library.MultiLanguage
 import com.vesystem.spice.model.KSpice
+import com.vesystem.spice.utils.SystemRunEnvUtil
 import com.vesystem.spicedemo.LocalManageUtil.saveSelectLanguage
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -37,6 +39,7 @@ class MainActivity : AppCompatActivity() {
         btnEnglish.setOnClickListener {
             selectLanguage(3)
         }
+        Log.d("MainActivity", "onCreate: ${SystemRunEnvUtil.comprehensiveCheckSystemEnv(this)}")
     }
 
     private fun readSP() {
@@ -80,7 +83,7 @@ class MainActivity : AppCompatActivity() {
                     etConnPort.text.toString(),
                     etConnPwd.text.toString()
                 )
-                .runtimeToPhone(true)
+//                .runtimeToPhone(0)
                 .sound(true)
                 .isAdjust(false)
                 .mouseMode(KSpice.MouseMode.MODE_CLICK)

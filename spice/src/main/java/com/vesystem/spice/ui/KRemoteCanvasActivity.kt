@@ -65,7 +65,7 @@ class KRemoteCanvasActivity : Activity() {
     private var keyBoardHeight: Int = 0
     private var scaleGestureListener: ScaleGestureListener? = null
     private var scaleGestureBinder: ScaleGestureBinder? = null
-
+    var systemRunningEnv = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -74,7 +74,13 @@ class KRemoteCanvasActivity : Activity() {
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this)
         }
-
+        systemRunningEnv = KSpice.readKeyInInt(
+            applicationContext,
+            KSpice.SYSTEM_RUN_ENV
+        ) == KSpice.PHONE || KSpice.readKeyInInt(
+            applicationContext,
+            KSpice.SYSTEM_RUN_ENV
+        ) == KSpice.FLAT
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //            initBroadcast()
             initMenuEvent()
@@ -125,7 +131,7 @@ class KRemoteCanvasActivity : Activity() {
                 keyBoardHeight = keyboardHeight - navigationBarHeight
                 flRemoteMenu.visibility = View.GONE
                 //如果是手机端、显示特殊键盘
-                if (KSpice.readKeyInBoolean(applicationContext, KSpice.SYSTEM_RUN_ENV)) {
+                if (systemRunningEnv) {
                     llSpecialKeyboard.translationY = -keyBoardHeight.toFloat()
                     val animator = ObjectAnimator.ofFloat(llSpecialKeyboard, "alpha", 0f, 1f)
                     animator.addListener(object : AnimatorListenerAdapter() {
@@ -146,7 +152,7 @@ class KRemoteCanvasActivity : Activity() {
             override fun hideKeyBoard(keyboardHeight: Int) {
                 keyBoardHeight = keyboardHeight
                 flRemoteMenu.visibility = View.VISIBLE
-                if (KSpice.readKeyInBoolean(applicationContext, KSpice.SYSTEM_RUN_ENV)) {
+                if (systemRunningEnv) {
                     llSpecialKeyboard.translationY = 0f
                     llSpecialKeyboard.visibility = View.GONE
                 }
@@ -303,7 +309,7 @@ class KRemoteCanvasActivity : Activity() {
                 tvAdjustHint.visibility = View.VISIBLE
             }
             KMessageEvent.SPICE_ADJUST_RESOLVING_TIMEOUT -> {
-                if (KSpice.readKeyInBoolean(this, KSpice.SYSTEM_RUN_ENV)) {
+                if (systemRunningEnv) {
                     requestedOrientation = if (messageEvent.isVertical) {
                         ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                     } else {
@@ -400,10 +406,7 @@ class KRemoteCanvasActivity : Activity() {
             if (KSpice.readKeyInBoolean(
                     context = this,
                     key = KSpice.IS_ADJUST
-                ) && keyBoardHeight > 0 && KSpice.readKeyInBoolean(
-                    context = this,
-                    key = KSpice.SYSTEM_RUN_ENV
-                ) || canvas.isAdjustFromPassive
+                ) && keyBoardHeight > 0 && systemRunningEnv || canvas.isAdjustFromPassive
             ) {
                 canvas.updateScaleToDefault()
                 //调整全屏成功才支持缩放
@@ -596,7 +599,7 @@ class KRemoteCanvasActivity : Activity() {
             popupMenu?.menu?.findItem(R.id.no_adjust)?.isChecked = true
         }
         //6、读取本地运行环境配置，显示不同UI
-        if (KSpice.readKeyInBoolean(this, KSpice.SYSTEM_RUN_ENV)) {
+        if (systemRunningEnv) {
             val itemInputMode = popupMenu?.menu?.findItem(R.id.operator_mode)
             itemInputMode?.isVisible = true
             if (KSpice.readKeyInString(

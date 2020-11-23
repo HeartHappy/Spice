@@ -24,10 +24,14 @@ object KSpice {
     private var sound: Boolean = false
     private var resolutionWidth = 0//分辨率宽
     private var resolutionHeight = 0//分辨率高
-    private var sysRunEnv = false  //true :手机  false：TV
+    private var sysRunEnv = 0 //0：手机  1：平板  2：Tv
     private var mouseMode = MouseMode.MODE_CLICK//默认操作模式，点击
     private var isAdjust = true//默认弹出键盘调整分辨率
 
+    //运行设备
+    const val PHONE = 0
+    const val FLAT = 1
+    const val TELEVISION = 2
 
     private const val SPICE_CONFIG = "SpiceConfig"
 
@@ -84,15 +88,15 @@ object KSpice {
         return this
     }
 
-    fun runtimeToPhone(isPhone:Boolean): KSpice {
-        this.sysRunEnv=isPhone
+    fun runtimeToPhone(runningDevice: Int): KSpice {
+        this.sysRunEnv = runningDevice
         return this
     }
 
     fun start(context: Context) {
         cf = context.filesDir.path + File.separator + "ca0.pem"
         //不为手机，则检测
-        if(!sysRunEnv){
+        if (sysRunEnv != PHONE) {
             sysRunEnv = SystemRunEnvUtil.comprehensiveCheckSystemEnv(context)
         }
         val widthPixels = context.resources.displayMetrics.widthPixels
@@ -174,7 +178,7 @@ object KSpice {
         edit.putString(PASSWORD, password)
         edit.putString(CF, cf)
         edit.putBoolean(SOUND, sound)
-        edit.putBoolean(SYSTEM_RUN_ENV, sysRunEnv)
+        edit.putInt(SYSTEM_RUN_ENV, sysRunEnv)
 
         edit.putInt(RESOLUTION_WIDTH, resolutionWidth)
         edit.putInt(RESOLUTION_HEIGHT, resolutionHeight)
@@ -188,4 +192,6 @@ object KSpice {
         MODE_CLICK,
         MODE_TOUCH
     }
+
+
 }
