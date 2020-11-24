@@ -24,7 +24,7 @@ object KSpice {
     private var sound: Boolean = false
     private var resolutionWidth = 0//分辨率宽
     private var resolutionHeight = 0//分辨率高
-    private var sysRunEnv = 0 //0：手机  1：平板  2：Tv
+    private var sysRunEnv = -1 //0：手机  1：平板  2：Tv
     private var mouseMode = MouseMode.MODE_CLICK//默认操作模式，点击
     private var isAdjust = true//默认弹出键盘调整分辨率
 
@@ -96,7 +96,7 @@ object KSpice {
     fun start(context: Context) {
         cf = context.filesDir.path + File.separator + "ca0.pem"
         //不为手机，则检测
-        if (sysRunEnv != PHONE) {
+        if (sysRunEnv == -1) {
             sysRunEnv = SystemRunEnvUtil.comprehensiveCheckSystemEnv(context)
         }
         val widthPixels = context.resources.displayMetrics.widthPixels
