@@ -17,8 +17,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import com.vesystem.spice.R
+import com.vesystem.spice.inputmethod.InterceptInputConnection
 import com.vesystem.spice.keyboard.KeyBoard
 import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN
 import com.vesystem.spice.keyboard.KeyBoard.Companion.KEY_WIN_ALT
@@ -555,7 +557,15 @@ class KRemoteCanvasActivity : Activity() {
                         true
                     }
                     R.id.system_keyboard -> {
-                        showKeyboard()
+                        interceptView.initInputConnection(object :
+                            InterceptInputConnection.BackspaceListener {
+                            override fun onBackspace(): Boolean {
+                                androidKeycodeToWinCode(KeyEvent.KEYCODE_DEL, true)
+                                androidKeycodeToWinCode(KeyEvent.KEYCODE_DEL, false)
+                                return true
+                            }
+                        })
+//                        showKeyboard()
                         true
                     }
                     R.id.is_adjust -> {

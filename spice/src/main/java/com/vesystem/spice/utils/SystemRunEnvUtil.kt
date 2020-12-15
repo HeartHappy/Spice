@@ -8,6 +8,7 @@ import android.content.res.Configuration
 import android.os.BatteryManager
 import android.telephony.TelephonyManager
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.WindowManager
 import com.vesystem.spice.model.KSpice
 
@@ -115,11 +116,22 @@ object SystemRunEnvUtil {
      * PHONE:手机 FLAT：平板 PHONE：TV
      */
     fun comprehensiveCheckSystemEnv(context: Context): Int {
-        return if (checkScreenIsPhone(context) && checkScreenLayoutIsPhone(context)) {
+        /*Log.d(
+            "SystemRunEnvUtil",
+            "comprehensiveCheckSystemEnv:${checkScreenIsPhone(context)},${checkScreenLayoutIsPhone(
+                context
+            )},${checkDeviceIsTv(context)},${checkBatteryIsPhone(context)},${checkSIMStateIsPhone(
+                context
+            )} "
+        )*/
+        return if (checkScreenIsPhone(context) && checkScreenLayoutIsPhone(context) && !checkDeviceIsTv(
+                context
+            )
+        ) {
             KSpice.PHONE
         } else if (checkSIMStateIsPhone(context) && !checkDeviceIsTv(context)) {
             KSpice.FLAT
-        } else if (checkBatteryIsPhone(context) && checkDeviceIsTv(context) && !(checkScreenIsPhone(
+        } else if (checkBatteryIsPhone(context) || checkDeviceIsTv(context) && !(checkScreenIsPhone(
                 context
             ) && checkScreenLayoutIsPhone(context) && checkSIMStateIsPhone(context))
         ) {
