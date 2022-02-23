@@ -11,9 +11,9 @@ import java.io.OutputStream;
 import java.util.Objects;
 
 public class GStreamer {
-    private native void nativeInit(Context context) throws Exception;
+    private static native void nativeInit(Context context) throws Exception;
 
-    public void init(Context context) throws Exception {
+    public static void init(Context context) throws Exception {
         nativeInit(context);
         copyFonts(context);
         copyCaCertificates(context);
@@ -29,7 +29,7 @@ public class GStreamer {
         copyCaCertificates(context);
     }
 
-    private void copyFonts(Context context) {
+    private static void copyFonts(Context context) {
         AssetManager assetManager = context.getAssets();
         File filesDir = context.getFilesDir();
         File fontsFCDir = new File(filesDir, "fontconfig");
@@ -51,7 +51,7 @@ public class GStreamer {
         }
     }
 
-    private void copyCaCertificates(Context context) {
+    private static void copyCaCertificates(Context context) {
         AssetManager assetManager = context.getAssets();
         File filesDir = context.getFilesDir();
         File sslDir = new File(filesDir, "ssl");
@@ -68,7 +68,7 @@ public class GStreamer {
         }
     }
 
-    private void copyFile(AssetManager assetManager, String assetPath, File outFile) throws IOException {
+    private static void copyFile(AssetManager assetManager, String assetPath, File outFile) throws IOException {
         InputStream in;
         OutputStream out;
         byte[] buffer = new byte[1024];

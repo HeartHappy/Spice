@@ -22,6 +22,7 @@ abstract class KMouse(
     protected var pressedX: Int = 0 //首次按下的点x坐标
     protected var pressedY: Int = 0//首次按下的点y坐标
     protected var isDoubleDown = false//判断双指按下和双指松开
+    protected var buttonDownState=0 //默认是松开的 0：释放、1：鼠标左键按下、2：鼠标右键按下、4、鼠标中间键按下
 
     var mouseX: Int = 0
         //鼠标的绝对X坐标

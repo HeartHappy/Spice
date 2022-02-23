@@ -8,9 +8,10 @@ import android.content.res.Configuration
 import android.os.BatteryManager
 import android.telephony.TelephonyManager
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.WindowManager
 import com.vesystem.spice.model.KSpice
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 /**
  * Created Date 2020/4/16.
@@ -33,11 +34,9 @@ object SystemRunEnvUtil {
         val defaultDisplay = windowManager.defaultDisplay
         val displayMetrics = DisplayMetrics()
         defaultDisplay.getMetrics(displayMetrics)
-        val x =
-            Math.pow(displayMetrics.widthPixels / displayMetrics.xdpi.toDouble(), 2.0)
-        val y =
-            Math.pow(displayMetrics.heightPixels / displayMetrics.ydpi.toDouble(), 2.0)
-        val screenInches = Math.sqrt(x + y)
+        val x = (displayMetrics.widthPixels / displayMetrics.xdpi.toDouble()).pow(2.0)
+        val y = (displayMetrics.heightPixels / displayMetrics.ydpi.toDouble()).pow(2.0)
+        val screenInches = sqrt(x + y)
         return screenInches < 6.5
     }
 
@@ -77,11 +76,11 @@ object SystemRunEnvUtil {
         val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
         val batteryStatus = context.registerReceiver(null, intentFilter)
         //当前电池状态
-        val status = batteryStatus!!.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+        val status = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
         val isCharging = status == BatteryManager.BATTERY_STATUS_FULL
 
         //当前充电状态
-        val chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
+        val chargePlug = batteryStatus?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
         val acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC
         return !(isCharging && acCharge)
     }
@@ -98,7 +97,6 @@ object SystemRunEnvUtil {
     /**
      * 综合检测，防止误判
      *
-     * @param context
      * @return
      */
     /*fun comprehensiveCheckSystemEnv(context: Context): Boolean {
