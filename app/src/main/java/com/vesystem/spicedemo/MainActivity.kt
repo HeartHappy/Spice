@@ -15,41 +15,46 @@ import com.github.jokar.multilanguages.library.MultiLanguage
 import com.vesystem.spice.model.KSpice
 import com.vesystem.spice.utils.SystemRunEnvUtil
 import com.vesystem.spicedemo.LocalManageUtil.saveSelectLanguage
-import kotlinx.android.synthetic.main.activity_main.*
+import com.vesystem.spicedemo.databinding.ActivityMainBinding
 
 
 class MainActivity : AppCompatActivity() {
     private val connectReceiver = ConnectReceiver()
-
+    lateinit var viewBinding:ActivityMainBinding
     override fun attachBaseContext(newBase: Context?) {
         super.attachBaseContext(MultiLanguage.setLocal(newBase))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewBinding= ActivityMainBinding.inflate(layoutInflater)
         imm()
-        setContentView(R.layout.activity_main)
+        setContentView(viewBinding.root)
 //        readSP()
         KSpice.registerSpiceReceiver(this, connectReceiver)
         connectDesktop()
+        viewBinding.apply {
+            btnChina.setOnClickListener {
+                selectLanguage(1)
+            }
+            btnEnglish.setOnClickListener {
+                selectLanguage(3)
+            }
+            Log.d("MainActivity", "onCreate: ${SystemRunEnvUtil.comprehensiveCheckSystemEnv(this@MainActivity)}")
+        }
 
-        btnChina.setOnClickListener {
-            selectLanguage(1)
-        }
-        btnEnglish.setOnClickListener {
-            selectLanguage(3)
-        }
-        Log.d("MainActivity", "onCreate: ${SystemRunEnvUtil.comprehensiveCheckSystemEnv(this)}")
     }
 
     private fun readSP() {
-        val sp = getSharedPreferences("SpiceConnectInfo", Context.MODE_PRIVATE)
-        val ip = sp.getString("IP", null)
-        val port = sp.getString("PORT", null)
-        val pwd = sp.getString("PWD", null)
-        ip?.let { etConnIp.setText(it) }
-        port?.let { etConnPort.setText(it) }
-        pwd?.let { etConnPwd.setText(it) }
+        viewBinding.apply {
+            val sp = getSharedPreferences("SpiceConnectInfo", Context.MODE_PRIVATE)
+            val ip = sp.getString("IP", null)
+            val port = sp.getString("PORT", null)
+            val pwd = sp.getString("PWD", null)
+            ip?.let { etConnIp.setText(it) }
+            port?.let { etConnPort.setText(it) }
+            pwd?.let { etConnPwd.setText(it) }
+        }
     }
 
 
@@ -76,28 +81,32 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("CommitPrefEdits")
     private fun connectDesktop() {
         saveSP()
-        btnConnect.setOnClickListener {
-            KSpice
-                .connect(
-                    etConnIp.text.toString(),
-                    etConnPort.text.toString(),
-                    etConnPwd.text.toString()
-                )
-//                .runtimeToPhone(0)
-                .sound(true)
-                .isAdjust(false)
-                .mouseMode(KSpice.MouseMode.MODE_CLICK)
-                .start(this)
+        viewBinding.apply {
+            btnConnect.setOnClickListener {
+                KSpice
+                    .connect(
+                        etConnIp.text.toString(),
+                        etConnPort.text.toString(),
+                        etConnPwd.text.toString()
+                    )
+                    //                .runtimeToPhone(0)
+                    .sound(true)
+                    .isAdjust(false)
+                    .mouseMode(KSpice.MouseMode.MODE_CLICK)
+                    .start(this@MainActivity)
+            }
         }
     }
 
     private fun saveSP() {
-        val sp = getSharedPreferences("SpiceConnectInfo", Context.MODE_PRIVATE)
-        val edit = sp.edit()
-        edit.putString("IP", etConnIp.text.toString())
-        edit.putString("PORT", etConnPort.text.toString())
-        edit.putString("PWD", etConnPwd.text.toString())
-        edit.apply()
+        viewBinding.apply {
+            val sp = getSharedPreferences("SpiceConnectInfo", Context.MODE_PRIVATE)
+            val edit = sp.edit()
+            edit.putString("IP", etConnIp.text.toString())
+            edit.putString("PORT", etConnPort.text.toString())
+            edit.putString("PWD", etConnPwd.text.toString())
+            edit.apply()
+        }
     }
 
     override fun onDestroy() {
