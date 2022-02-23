@@ -51,7 +51,7 @@ class MyApplication : Application() {
         super.attachBaseContext(MultiLanguage.setLocal(base))
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration?) {
+    override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         /**
          * The user saves the system selection language when switching languages on the system settings page (in order to select when the system language is used, if it is not saved, it will not be available after switching languages)

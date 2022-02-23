@@ -84,7 +84,6 @@ class KRemoteCanvasActivity : Activity() {
             KSpice.SYSTEM_RUN_ENV
         ) == KSpice.FLAT
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            initBroadcast()
             initMenuEvent()
             initZoomEvent()
             initSoftKeyboardEvent()

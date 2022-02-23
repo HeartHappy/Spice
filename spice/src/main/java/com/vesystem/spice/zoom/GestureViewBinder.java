@@ -3,6 +3,7 @@ package com.vesystem.spice.zoom;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -39,8 +40,10 @@ public class GestureViewBinder {
         scaleGestureBinder = new ScaleGestureBinder(context, scaleGestureListener);
         scrollGestureBinder = new ScrollGestureBinder(context, scrollGestureListener);
         targetView.setClickable(false);
-        viewGroup.setOnTouchListener((v, event) -> {
-           /* if (event.getPointerCount() == 1 && isScaleEnd) {
+        viewGroup.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                /* if (event.getPointerCount() == 1 && isScaleEnd) {
                 Log.i("GestureViewBinder", "GestureViewBinder: 单指按下");
                 return scrollGestureBinder.onTouchEvent(event);
             } else*/ if (event.getPointerCount() == 2/* || !isScaleEnd*/) {
@@ -50,13 +53,14 @@ public class GestureViewBinder {
                     Log.i("GestureViewBinder", "GestureViewBinder: 结束了，判定是否最小限制");
                 }*/
 //                scrollGestureListener.setScale(scaleGestureListener.getScale());
-                if (onScaleListener != null) {
-                    onScaleListener.onScale(scaleGestureListener.getScale());
+                    if (onScaleListener != null) {
+                        onScaleListener.onScale(scaleGestureListener.getScale());
+                    }
+                    Log.i("GestureViewBinder", "GestureViewBinder: ");
+                    return scaleGestureBinder.onTouchEvent(event);
                 }
-                Log.i("GestureViewBinder", "GestureViewBinder: ");
-                return scaleGestureBinder.onTouchEvent(event);
+                return false;
             }
-            return false;
         });
     }
 
