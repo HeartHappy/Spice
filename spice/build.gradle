@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'maven-publish'
-group='com.hearthappy'
+group = 'com.hearthappy'
 
 
 task sourcesJar(type: Jar) {
@@ -69,9 +69,11 @@ android {
         java.srcDirs += 'src/main/java'
         jniLibs.srcDirs += 'src/main/jniLibs'
     }
-    buildFeatures{
+    buildFeatures {
         viewBinding true
     }
+
+    ndkVersion "21.0.6113669"
 }
 
 dependencies {
