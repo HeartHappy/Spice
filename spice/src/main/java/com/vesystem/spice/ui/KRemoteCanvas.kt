@@ -671,7 +671,7 @@ class KRemoteCanvas(context: Context, attrs: AttributeSet?) : AppCompatImageView
                             }
                             translationY = viewTranslationY.toFloat()
                         }
-                        viewRect.right > width && x in (width - viewRect.left) / scaleFactor - singleOffset..viewRect.right.toFloat() -> {
+                        viewRect.right > width && x.toFloat() in (width - viewRect.left) / scaleFactor - singleOffset..viewRect.right.toFloat() -> {
 //                            Log.d(TAG, "computeMouseBoundaryPoint: 右侧边界，左移")
                             viewTranslationX = (translationX - singleOffset).toInt()
                             if (abs(viewTranslationX) > (viewRect.right - viewRect.left - width) / 2) {
