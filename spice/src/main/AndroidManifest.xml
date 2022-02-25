@@ -21,6 +21,7 @@
             android:name=".ui.KRemoteCanvasActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|keyboard|navigation"
             android:launchMode="singleTask"
+            android:exported="false"
             android:process=":remotedesktop"
             android:theme="@style/RemoteTheme"
             android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
