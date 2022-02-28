@@ -22,11 +22,12 @@ object KSpice {
     private var password: String by Delegates.notNull()
     private var cf: String by Delegates.notNull()
     private var sound: Boolean = false
-    private var resolutionWidth = 0//分辨率宽
-    private var resolutionHeight = 0//分辨率高
+    private var resolutionWidth = 0 //分辨率宽
+    private var resolutionHeight = 0 //分辨率高
     private var sysRunEnv = -1 //0：手机  1：平板  2：Tv
-    private var mouseMode = MouseMode.MODE_CLICK//默认操作模式，点击
-    private var isAdjust = true//默认弹出键盘调整分辨率
+    private var mouseMode = MouseMode.MODE_CLICK //默认操作模式，点击
+    private var isAdjust = true //默认弹出键盘调整分辨率
+    private var fileName: String? = null
 
     //运行设备
     const val PHONE = 0
@@ -42,6 +43,8 @@ object KSpice {
     internal const val PASSWORD = "PASSWORD"
     internal const val CF = "CF"
     internal const val SOUND = "SOUND"
+    internal const val FILEPATH = "FILE_NAME"
+    internal const val IS_PROXY = "IS_PROXY"
 
     //设置相关配置
     internal const val MOUSE_MODE = "MOUSE_MODE"
@@ -56,8 +59,8 @@ object KSpice {
     //弹出键盘是否调整分辨率
     internal const val IS_ADJUST = "IS_ADJUST"
 
-    const val ACTION_SPICE_CONNECT_SUCCEED = "ACTION_SPICE_CONNECT_SUCCEED"//spice连接成功通知Action
-    const val ACTION_SPICE_CONNECT_DISCONNECT = "ACTION_SPICE_CONNECT_DISCONNECT"//spice连接断开通知Action
+    const val ACTION_SPICE_CONNECT_SUCCEED = "ACTION_SPICE_CONNECT_SUCCEED" //spice连接成功通知Action
+    const val ACTION_SPICE_CONNECT_DISCONNECT = "ACTION_SPICE_CONNECT_DISCONNECT" //spice连接断开通知Action
 
     fun connect(ip: String, port: String, password: String): KSpice {
         this.ip = ip
@@ -93,27 +96,24 @@ object KSpice {
         return this
     }
 
-    fun start(context: Context) {
-        cf = context.filesDir.path + File.separator + "ca0.pem"
-        //不为手机，则检测
+    fun start(context: Context, filePath: String = "", proxy: Boolean = false) {
+        cf = context.filesDir.path + File.separator + "ca0.pem" //不为手机，则检测
         if (sysRunEnv == -1) {
             sysRunEnv = SystemRunEnvUtil.comprehensiveCheckSystemEnv(context)
         }
         val widthPixels = context.resources.displayMetrics.widthPixels
         val heightPixels = context.resources.displayMetrics.heightPixels
-        resolutionWidth =
-            if (kotlin.math.abs(resolutionWidth) > widthPixels) widthPixels else kotlin.math.abs(
-                resolutionWidth
-            )
-        resolutionHeight =
-            if (kotlin.math.abs(resolutionHeight) > heightPixels) heightPixels else kotlin.math.abs(
-                resolutionHeight
-            )
+        resolutionWidth = if (kotlin.math.abs(resolutionWidth) > widthPixels) widthPixels else kotlin.math.abs(resolutionWidth)
+        resolutionHeight = if (kotlin.math.abs(resolutionHeight) > heightPixels) heightPixels else kotlin.math.abs(resolutionHeight)
         val sp = getSpiceConfigSP(context)
-        writeSharedPreferences(sp)
+        writeSharedPreferences(sp, filePath, proxy)
         System.gc()
         val intent = Intent(context, KRemoteCanvasActivity::class.java)
         context.startActivity(intent)
+    }
+
+    fun startFile(context: Context, filePath: String) {
+        start(context, filePath, true)
     }
 
     /**
@@ -170,7 +170,7 @@ object KSpice {
     }
 
 
-    private fun writeSharedPreferences(sp: SharedPreferences) {
+    private fun writeSharedPreferences(sp: SharedPreferences, filePath: String, proxy: Boolean) {
         val edit = sp.edit()
         edit.putString(IP, ip)
         edit.putString(PORT, port)
@@ -179,19 +179,17 @@ object KSpice {
         edit.putString(CF, cf)
         edit.putBoolean(SOUND, sound)
         edit.putInt(SYSTEM_RUN_ENV, sysRunEnv)
-
         edit.putInt(RESOLUTION_WIDTH, resolutionWidth)
         edit.putInt(RESOLUTION_HEIGHT, resolutionHeight)
         edit.putString(MOUSE_MODE, mouseMode.toString())
         edit.putBoolean(IS_ADJUST, isAdjust)
+        edit.putString(FILEPATH, filePath)
+        edit.putBoolean(IS_PROXY, proxy)
         edit.apply()
     }
 
 
     enum class MouseMode {
-        MODE_CLICK,
-        MODE_TOUCH
+        MODE_CLICK, MODE_TOUCH
     }
-
-
 }
